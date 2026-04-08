@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FSC Nexus v12.1 | Fonseca Soluciones Comerciales</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg: #000a1a;
+            --card: #00122e;
+            --accent: #00e5ff;
+            --slate: #4f5b66;
+        }
+        body { 
+            background-color: var(--bg);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: #e2e8f0;
+            overscroll-behavior: none;
+        }
+        .fsc-gradient {
+            background: radial-gradient(circle at top right, #001f3f 0%, #000a1a 100%);
+        }
+        .glass-card {
+            background: rgba(0, 18, 46, 0.8);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(0, 229, 255, 0.1);
+        }
+        .active-tab {
+            color: var(--accent) !important;
+            background: rgba(0, 229, 255, 0.05);
+            border-bottom: 2px solid var(--accent);
+        }
+        .active-tab-alevenca {
+            color: #ef4444 !important;
+            background: rgba(239, 68, 68, 0.05);
+            border-bottom: 2px solid #ef4444;
+        }
+        .page { display: none; animation: slideUp 0.4s cubic-bezier(0, 0, 0.2, 1); }
+        .page.active { display: block; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        
+        #auth-screen {
+            position: fixed; inset: 0; z-index: 9999;
+            background: radial-gradient(circle at center, #001f3f, #000a1a);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        .btn-fsc {
+            background: var(--accent);
+            color: #000a1a;
+            box-shadow: 0 0 20px rgba(0, 229, 255, 0.2);
+        }
+        .btn-fsc:active { transform: scale(0.96); opacity: 0.9; }
+        .suggestion-item:hover { background: rgba(0, 229, 255, 0.1); }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #000a1a; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
+    </style>
+</head>
+<body class="fsc-gradient min-h-screen pb-24">
+
+    <!-- BLOQUEO DE SEGURIDAD -->
+    <div id="auth-screen">
+        <div class="w-full max-w-sm p-8 text-center space-y-10">
+            <div class="relative mx-auto w-24 h-24 bg-cyan-500/5 rounded-full flex items-center justify-center border-2 border-cyan-500/20">
+                <i data-lucide="cog" class="text-cyan-400 w-12 h-12 animate-spin-slow"></i>
+                <div class="absolute inset-0 border-2 border-cyan-400 rounded-full border-t-transparent animate-spin"></div>
+            </div>
+            <div>
+                <h1 class="text-3xl font-black tracking-tighter text-white">FSC <span class="text-cyan-400">NEXUS</span></h1>
+                <p class="text-[9px] text-cyan-500/60 font-bold uppercase tracking-[0.4em]">Multi-División v12.1</p>
+            </div>
+            <div class="space-y-4">
+                <input type="password" id="pin-input" maxlength="4" placeholder="••••" class="w-full bg-black/40 border border-cyan-900/50 rounded-2xl p-5 text-center text-3xl tracking-[0.6em] text-cyan-400 focus:border-cyan-400 outline-none transition-all">
+                <button onclick="login()" class="w-full btn-fsc py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em]">Acceso de Ingeniería</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- APP PRINCIPAL -->
+    <div id="app" class="hidden max-w-lg mx-auto px-4">
+        
+        <header class="py-10 flex justify-between items-center border-b border-cyan-900/30 mb-6">
+            <div class="space-y-1">
+                <h2 class="text-xl font-black tracking-tighter text-white">FONSECA <span class="text-cyan-400">SC</span></h2>
+                <p id="current-date" class="text-[9px] font-bold text-slate-500 uppercase tracking-widest mono"></p>
+            </div>
+            <div class="bg-cyan-950/30 px-4 py-2 rounded-xl border border-cyan-400/20 text-right">
+                <p class="text-[7px] font-black text-cyan-400 uppercase tracking-widest mb-1">Tasa Operativa</p>
+                <div class="text-white font-black text-sm mono" id="display-tasa">0.00 Bs.</div>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-2 gap-4 mb-8" id="header-filters">
+            <div class="glass-card p-4 rounded-2xl space-y-3">
+                <label class="text-[8px] font-black text-cyan-500/70 uppercase tracking-widest">Base de Precios</label>
+                <div class="flex bg-black/40 p-1 rounded-xl">
+                    <button onclick="setCurrency('USD')" id="btn-usd" class="toggle-btn active flex-1 py-2 rounded-lg text-[9px] uppercase font-black transition-all bg-cyan-400 text-black">Divisa $</button>
+                    <button onclick="setCurrency('VEF')" id="btn-vef" class="toggle-btn flex-1 py-2 rounded-lg text-[9px] uppercase font-black transition-all">Bolívar Bs</button>
+                </div>
+            </div>
+            <div class="glass-card p-4 rounded-2xl space-y-3">
+                <label class="text-[8px] font-black text-cyan-500/70 uppercase tracking-widest">Grupo Técnico</label>
+                <select id="catFilter" onchange="renderCatalog()" class="w-full bg-black/40 border border-cyan-900/50 rounded-xl p-2.5 text-[10px] text-cyan-400 outline-none mono font-bold">
+                    <option value="Todos">-- TODOS --</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- PÁGINA 1: CATÁLOGO FSC -->
+        <div id="page-catalog" class="page active">
+            <div id="catalog-grid" class="grid grid-cols-2 gap-5 pb-12">
+                <div class="col-span-2 text-center py-24 text-slate-600 space-y-4">
+                    <i data-lucide="database-zap" class="w-12 h-12 mx-auto opacity-10"></i>
+                    <p class="text-[10px] font-bold uppercase tracking-[0.2em]">Esperando Sincronización de Datos Maestros...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- PÁGINA 2: CARRITO & CRM FSC -->
+        <div id="page-cart" class="page space-y-6">
+            <div class="flex justify-between items-center px-2">
+                <h3 class="text-[10px] font-black uppercase text-slate-500 tracking-[0.2em]">Configuración de Pedido</h3>
+                <button onclick="clearCart()" class="text-[9px] text-red-500/70 font-black uppercase tracking-widest">Vaciar Carrito</button>
+            </div>
+            
+            <div id="cart-items" class="space-y-4 min-h-[180px]"></div>
+
+            <div class="glass-card p-7 rounded-[2rem] space-y-6 shadow-2xl relative border-cyan-400/20">
+                <div class="space-y-3 relative">
+                    <label class="text-[8px] font-black text-cyan-400 uppercase tracking-[0.3em] ml-1">Ficha del Cliente</label>
+                    <div class="relative">
+                        <input type="text" id="clientSearch" oninput="searchClientCRM()" placeholder="BUSCAR CLIENTE POR NOMBRE O RIF..." class="w-full bg-black/60 border border-cyan-900/50 rounded-xl p-4 text-xs text-white outline-none focus:border-cyan-400 placeholder:text-slate-700 font-bold uppercase">
+                        <div id="crm-suggestions" class="hidden absolute top-full left-0 right-0 mt-2 glass-card rounded-xl border border-cyan-500/30 overflow-hidden z-[100] max-h-48 overflow-y-auto custom-scrollbar"></div>
+                    </div>
+                    <p id="client-info-display" class="text-[9px] text-slate-500 italic ml-1 mono"></p>
+                </div>
+                
+                <div class="pt-4 border-t border-cyan-900/40">
+                    <div class="flex justify-between items-end">
+                        <span class="text-[10px] font-black text-cyan-400 uppercase tracking-widest">Inversión Estimada</span>
+                        <div class="text-right">
+                            <h2 id="cart-total-main" class="text-3xl font-black text-white">$ 0.00</h2>
+                            <p id="cart-total-alt" class="text-[11px] font-bold text-slate-500 mono">0.00 Bs.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <button onclick="generateNexusPDF()" class="w-full btn-fsc py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-3 shadow-lg active:scale-95 transition-all">
+                    <i data-lucide="file-check-2" class="w-4 h-4"></i> Generar Presupuesto Técnico
+                </button>
+            </div>
+        </div>
+
+        <!-- PÁGINA 3: PROYECTOS ALEVENCA -->
+        <div id="page-alevenca" class="page space-y-6 pb-6">
+            <div class="flex justify-between items-center px-2">
+                <h3 class="text-[10px] font-black uppercase text-red-500 tracking-[0.2em]">División Alevenca</h3>
+                <div class="flex gap-2 items-center">
+                    <select id="al-saved-projects" onchange="loadAlevencaProject()" class="bg-black/40 border border-red-900/30 rounded-lg p-1.5 text-[9px] text-white outline-none focus:border-red-500 max-w-[130px] font-bold">
+                        <option value="-1">-- NUEVO PROYECTO --</option>
+                    </select>
+                    <button onclick="exportAlevencaExcel()" class="bg-red-500/10 text-red-400 border border-red-500/20 px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-red-500/20 transition-all" title="Exportar Excel"><i data-lucide="table" class="w-3 h-3"></i> BD</button>
+                </div>
+            </div>
+
+            <!-- Formulario Cliente y Proyecto -->
+            <div class="glass-card p-6 rounded-[2rem] space-y-5 border-red-500/20 shadow-2xl relative">
+                <h4 class="text-xs font-black text-red-500 uppercase tracking-widest border-b border-red-900/30 pb-2">Datos del Proyecto</h4>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="col-span-2 space-y-1"><label class="text-[8px] font-black text-slate-500 uppercase px-1">Cliente / Razón Social</label><input type="text" id="al-cliente" class="w-full bg-black/40 border border-red-900/30 rounded-xl p-3 text-xs text-white outline-none focus:border-red-500 placeholder:text-slate-700" placeholder="Nombre completo"></div>
+                    <div class="space-y-1"><label class="text-[8px] font-black text-slate-500 uppercase px-1">Teléfono</label><input type="text" id="al-tel" class="w-full bg-black/40 border border-red-900/30 rounded-xl p-3 text-xs text-white outline-none focus:border-red-500 placeholder:text-slate-700" placeholder="0412..."></div>
+                    <div class="space-y-1"><label class="text-[8px] font-black text-slate-500 uppercase px-1">Estado del Proyecto</label><select id="al-estado" class="w-full bg-black/40 border border-red-900/30 rounded-xl p-3 text-xs text-white outline-none focus:border-red-500"><option>Esperando Aprobación</option><option>En Proceso</option><option>Suspendido</option><option>Culminado</option></select></div>
+                    <div class="col-span-2 space-y-1"><label class="text-[8px] font-black text-slate-500 uppercase px-1">Dirección de Instalación / Obra</label><textarea id="al-dir" class="w-full bg-black/40 border border-red-900/30 rounded-xl p-3 text-xs text-white outline-none focus:border-red-500 h-16 resize-none placeholder:text-slate-700" placeholder="Ubicación detallada..."></textarea></div>
+                    <div class="col-span-2 space-y-1"><label class="text-[8px] font-black text-slate-500 uppercase px-1">Descripción del Presupuesto</label><textarea id="al-desc" class="w-full bg-black/40 border border-red-900/30 rounded-xl p-3 text-xs text-white outline-none focus:border-red-500 h-20 resize-none placeholder:text-slate-700" placeholder="Especificaciones, medidas, materiales..."></textarea></div>
+                </div>
+            </div>
+
+            <!-- Finanzas y Cotización -->
+            <div class="glass-card p-6 rounded-[2rem] space-y-5 border-red-500/20 shadow-2xl relative">
+                <h4 class="text-[10px] font-black uppercase text-red-400 tracking-widest border-b border-red-900/30 pb-2">Cotización y Abonos</h4>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-1"><label class="text-[8px] font-black text-cyan-400 uppercase px-1">Precio Divisa ($)</label><input type="number" id="al-divisa" class="w-full bg-black/40 border border-cyan-900/30 rounded-xl p-3 text-xs text-white outline-none focus:border-cyan-500" oninput="calcAlevenca()" placeholder="0.00"></div>
+                    <div class="space-y-1"><label class="text-[8px] font-black text-amber-400 uppercase px-1">Precio Ref. (Base $)</label><input type="number" id="al-ref" class="w-full bg-black/40 border border-amber-900/30 rounded-xl p-3 text-xs text-white outline-none focus:border-amber-500" oninput="calcAlevenca()" placeholder="0.00"></div>
+                    <div class="col-span-2 space-y-1"><label class="text-[8px] font-black text-red-400 uppercase px-1">Forma de Pago Acordada</label><select id="al-metodo" class="w-full bg-black/40 border border-red-900/50 rounded-xl p-3 text-xs text-white outline-none font-bold" onchange="calcAlevenca()"><option value="Oferta en Divisa">Oferta en Divisa ($)</option><option value="Precio Ref.">Precio Referencia (Bs a Tasa)</option></select></div>
+                    
+                    <div class="space-y-1"><label class="text-[8px] font-black text-slate-400 uppercase px-1">Abono Inicial (Base $)</label><input type="number" id="al-abono" class="w-full bg-black/40 border border-slate-800 rounded-xl p-3 text-xs text-white outline-none focus:border-slate-500" oninput="calcAlevenca()" placeholder="0.00"></div>
+                    <div class="space-y-1"></div> <!-- spacer -->
+
+                    <div class="space-y-1"><label class="text-[8px] font-black text-slate-400 uppercase px-1">Abono Adic. (Base $)</label><input type="number" id="al-abono-adic" class="w-full bg-black/40 border border-slate-800 rounded-xl p-3 text-xs text-white outline-none focus:border-slate-500" oninput="calcAlevenca()" placeholder="0.00"></div>
+                    <div class="space-y-1"><label class="text-[8px] font-black text-slate-400 uppercase px-1">Fecha Abono Adic.</label><input type="date" id="al-fecha-adic" class="w-full bg-black/40 border border-slate-800 rounded-xl p-3 text-xs text-slate-400 outline-none focus:border-slate-500"></div>
+                </div>
+
+                <div class="pt-5 border-t border-red-900/30 flex justify-between items-end mt-2">
+                    <div class="space-y-1">
+                        <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest block">Subtotal: <span id="al-total-proj" class="text-white mono">0.00</span></span>
+                        <span class="text-[9px] font-black text-emerald-500 uppercase tracking-widest block">Abonado: <span id="al-total-abono" class="text-emerald-400 mono">0.00</span></span>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-[10px] font-black text-red-500 uppercase tracking-widest">Saldo Pendiente</span>
+                        <h2 id="al-saldo" class="text-3xl font-black text-white mono">0.00</h2>
+                        <p id="al-moneda-label" class="text-[9px] font-bold text-slate-500 uppercase mt-1"></p>
+                    </div>
+                </div>
+
+                <div class="flex gap-2 pt-4">
+                    <button onclick="currentAlevencaIndex = -1; loadAlevencaProject();" class="w-12 bg-black/50 text-slate-400 py-4 rounded-xl font-black shadow-lg active:scale-95 transition-all border border-slate-800 hover:text-white flex items-center justify-center" title="Limpiar Formulario"><i data-lucide="eraser" class="w-4 h-4"></i></button>
+                    <button onclick="saveAlevencaProject()" class="flex-1 bg-red-900/30 text-red-400 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg active:scale-95 transition-all border border-red-900/50 hover:bg-red-900/50 flex items-center justify-center gap-2"><i data-lucide="save" class="w-4 h-4"></i> Guardar</button>
+                    <button onclick="generateAlevencaPDF()" class="flex-1 bg-red-600 text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-red-600/20 active:scale-95 transition-all flex items-center justify-center gap-2"><i data-lucide="file-text" class="w-4 h-4"></i> Exportar PDF</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- PÁGINA 4: AJUSTES -->
+        <div id="page-settings" class="page space-y-6 overflow-y-auto max-h-[75vh] custom-scrollbar pb-10">
+            <div class="glass-card p-6 rounded-[2rem] space-y-6">
+                <h3 class="text-[10px] font-black uppercase text-cyan-400 tracking-widest">Sincronización de Datos Maestros</h3>
+                
+                <input type="file" id="excelInput" class="hidden" accept=".xlsx,.xls">
+                <button onclick="document.getElementById('excelInput').click()" class="w-full border-2 border-dashed border-cyan-900/50 p-10 rounded-3xl flex flex-col items-center gap-4 hover:border-cyan-400 transition-all bg-cyan-950/10 group">
+                    <i data-lucide="upload-cloud" class="text-cyan-900 w-10 h-10 group-hover:text-cyan-400 transition-colors"></i>
+                    <span id="excelStatus" class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Cargar Maestro Excel</span>
+                </button>
+
+                <div id="mapping-area" class="hidden space-y-5 pt-4 border-t border-cyan-900/30">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-1"><label class="text-[8px] text-slate-500 uppercase font-bold px-1">Hoja Inventario</label><select id="sheet-items" class="w-full bg-black/40 border border-cyan-900/50 rounded-xl p-2.5 text-[10px] text-cyan-400 outline-none"></select></div>
+                        <div class="space-y-1"><label class="text-[8px] text-slate-500 uppercase font-bold px-1">Hoja Clientes CRM</label><select id="sheet-clients" class="w-full bg-black/40 border border-cyan-900/50 rounded-xl p-2.5 text-[10px] text-cyan-400 outline-none"></select></div>
+                    </div>
+                    
+                    <p class="text-[9px] font-black text-cyan-500 uppercase tracking-widest text-center py-2 bg-cyan-950/20 rounded-lg">Mapeo de Estructura</p>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-1"><label class="text-[8px] text-slate-500 font-bold px-1 uppercase">Cód. SKU</label><select id="col-id" class="col-map w-full bg-black/40 border border-cyan-900/50 rounded-xl p-2 text-[10px] text-white outline-none"></select></div>
+                        <div class="space-y-1"><label class="text-[8px] text-slate-500 font-bold px-1 uppercase">Artículo</label><select id="col-name" class="col-map w-full bg-black/40 border border-cyan-900/50 rounded-xl p-2 text-[10px] text-white outline-none"></select></div>
+                        <div class="space-y-1"><label class="text-[8px] text-slate-500 font-bold px-1 uppercase">Marca</label><select id="col-brand" class="col-map w-full bg-black/40 border border-cyan-900/50 rounded-xl p-2 text-[10px] text-white outline-none"></select></div>
+                        <div class="space-y-1"><label class="text-[8px] text-slate-500 font-bold px-1 uppercase">Categoría</label><select id="col-cat" class="col-map w-full bg-black/40 border border-cyan-900/50 rounded-xl p-2 text-[10px] text-white outline-none"></select></div>
+                        <div class="space-y-1"><label class="text-[8px] text-slate-500 font-bold px-1 uppercase">Medidas</label><select id="col-med" class="col-map w-full bg-black/40 border border-cyan-900/50 rounded-xl p-2 text-[10px] text-white outline-none"></select></div>
+                        <div class="space-y-1"><label class="text-[8px] text-slate-500 font-bold px-1 uppercase">Equivalencias</label><select id="col-equi" class="col-map w-full bg-black/40 border border-cyan-900/50 rounded-xl p-2 text-[10px] text-white outline-none"></select></div>
+                        <div class="space-y-1"><label class="text-[8px] text-cyan-400 font-bold px-1 uppercase">Precio $</label><select id="col-oferta" class="col-map w-full bg-cyan-950/40 border border-cyan-400/30 rounded-xl p-2 text-[10px] text-white outline-none"></select></div>
+                        <div class="space-y-1"><label class="text-[8px] text-cyan-400 font-bold px-1 uppercase">Ref. $</label><select id="col-referencia" class="col-map w-full bg-cyan-950/40 border border-cyan-400/30 rounded-xl p-2 text-[10px] text-white outline-none"></select></div>
+                        <div class="space-y-1"><label class="text-[8px] text-slate-500 font-bold px-1 uppercase">Empresa</label><select id="col-company" class="col-map w-full bg-black/40 border border-cyan-900/50 rounded-xl p-2 text-[10px] text-white outline-none"></select></div>
+                        <div class="space-y-1"><label class="text-[8px] text-slate-500 font-bold px-1 uppercase">Tasa Operativa</label><select id="col-tasa" class="col-map w-full bg-black/40 border border-cyan-900/50 rounded-xl p-2 text-[10px] text-white outline-none"></select></div>
+                        <div class="col-span-2 space-y-1"><label class="text-[8px] text-slate-500 font-bold px-1 uppercase block text-center">Columna Estatus (Disponible/Agotado)</label><select id="col-stat" class="col-map w-full bg-black/40 border border-cyan-900/50 rounded-xl p-2 text-[10px] text-white outline-none"></select></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card p-6 rounded-[2rem] space-y-4 border-cyan-900/30">
+                <h3 class="text-[10px] font-black uppercase text-cyan-400 tracking-widest">Pago FSC</h3>
+                <textarea id="config-pagos" class="w-full bg-black/40 border border-cyan-900/50 rounded-xl p-4 text-xs h-24 text-slate-400 outline-none font-bold placeholder:text-slate-800" placeholder="Ej: Zelle, Pago Móvil..."></textarea>
+            </div>
+        </div>
+
+        <nav class="fixed bottom-6 left-6 right-6 h-20 glass-card rounded-[2.5rem] flex items-center justify-around px-2 shadow-2xl z-50 border-cyan-400/30">
+            <button onclick="changePage('catalog', this)" class="nav-btn p-4 active-tab"><i data-lucide="layout-grid" class="w-6 h-6"></i></button>
+            <button onclick="changePage('cart', this)" class="nav-btn p-4 text-slate-600 relative">
+                <i data-lucide="shopping-cart" class="w-6 h-6"></i>
+                <span id="cart-badge" class="hidden absolute top-2 right-2 w-4 h-4 bg-cyan-400 text-[8px] font-black flex items-center justify-center rounded-full text-black">0</span>
+            </button>
+            <button onclick="changePage('alevenca', this)" class="nav-btn p-4 text-slate-600"><i data-lucide="hard-hat" class="w-6 h-6"></i></button>
+            <button onclick="changePage('settings', this)" class="nav-btn p-4 text-slate-600"><i data-lucide="settings" class="w-6 h-6"></i></button>
+        </nav>
+
+    </div>
+
+    <script>
+        // CORE VARIABLES
+        let masterItems = [];
+        let masterClients = [];
+        let selectedClient = null;
+        let cart = [];
+        let currentCurrency = 'USD'; 
+        let currentTasa = 1.0;
+        let workbook = null;
+        let alevencaData = [];
+        let currentAlevencaIndex = -1;
+
+        function login() {
+            if(document.getElementById('pin-input').value === "2026") {
+                document.getElementById('auth-screen').style.display = 'none';
+                document.getElementById('app').classList.remove('hidden');
+                document.getElementById('app').style.display = 'block';
+                lucide.createIcons();
+            } else { document.getElementById('pin-input').value = ''; }
+        }
+
+        document.getElementById('current-date').textContent = new Date().toLocaleDateString('es-VE', { weekday: 'long', day: 'numeric', month: 'long' });
+
+        function changePage(pageId, btn) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(`page-${pageId}`).classList.add('active');
+            
+            document.querySelectorAll('.nav-btn').forEach(b => {
+                b.classList.remove('active-tab', 'active-tab-alevenca', 'text-cyan-400', 'text-red-500');
+                b.classList.add('text-slate-600');
+            });
+            
+            btn.classList.remove('text-slate-600');
+            if (pageId === 'alevenca') {
+                btn.classList.add('active-tab-alevenca');
+                document.getElementById('header-filters').classList.add('hidden');
+            } else {
+                btn.classList.add('active-tab');
+                document.getElementById('header-filters').classList.remove('hidden');
+            }
+        }
+
+        // --- SISTEMA FSC NEXUS ---
+        function setCurrency(curr) {
+            currentCurrency = curr;
+            const btnUsd = document.getElementById('btn-usd');
+            const btnVef = document.getElementById('btn-vef');
+            
+            if (curr === 'USD') {
+                btnUsd.classList.add('bg-cyan-400', 'text-black');
+                btnUsd.classList.remove('text-slate-500');
+                btnVef.classList.remove('bg-cyan-400', 'text-black');
+                btnVef.classList.add('text-slate-500');
+            } else {
+                btnVef.classList.add('bg-cyan-400', 'text-black');
+                btnVef.classList.remove('text-slate-500');
+                btnUsd.classList.remove('bg-cyan-400', 'text-black');
+                btnUsd.classList.add('text-slate-500');
+            }
+            renderCatalog(); updateCartUI();
+        }
+
+        document.getElementById('excelInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                const data = new Uint8Array(ev.target.result);
+                workbook = XLSX.read(data, {type: 'array'});
+                const sheetsHTML = workbook.SheetNames.map(name => `<option value="${name}">${name}</option>`).join('');
+                document.getElementById('sheet-items').innerHTML = sheetsHTML;
+                document.getElementById('sheet-clients').innerHTML = sheetsHTML;
+                document.getElementById('sheet-items').value = workbook.SheetNames.find(n => n.toUpperCase().includes('INVENTARIO')) || workbook.SheetNames[0];
+                document.getElementById('sheet-clients').value = workbook.SheetNames.find(n => n.toUpperCase().includes('CLIENTES')) || workbook.SheetNames[1] || workbook.SheetNames[0];
+                document.getElementById('mapping-area').classList.remove('hidden');
+                document.getElementById('excelStatus').textContent = "✓ SISTEMA SINCRONIZADO";
+                document.getElementById('excelStatus').classList.replace('text-slate-500', 'text-cyan-400');
+                loadSelectedSheets();
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        function loadSelectedSheets() {
+            const itemSheetName = document.getElementById('sheet-items').value;
+            const clientSheetName = document.getElementById('sheet-clients').value;
+            const itemsRows = XLSX.utils.sheet_to_json(workbook.Sheets[itemSheetName], {header: 1});
+            const clientRows = XLSX.utils.sheet_to_json(workbook.Sheets[clientSheetName], {header: 1});
+
+            if(itemsRows.length > 0) {
+                setupColumnMapping(itemsRows[0]);
+                masterItems = itemsRows.slice(1);
+            }
+            if(clientRows.length > 0) {
+                const clientHeaders = clientRows[0].map(h => h?.toString().toUpperCase() || "");
+                const findIdx = (kw) => clientHeaders.findIndex(h => kw.some(k => h.includes(k)));
+                const cIdx = { id: findIdx(['ID']), name: findIdx(['NOMBRE', 'SOCIAL']), rif: findIdx(['RIF', 'CEDULA']), tel: findIdx(['TELEFONO']), wa: findIdx(['WHATSAPP']), dir: findIdx(['DIRECCION', 'UBICACION']), type: findIdx(['TIPO']) };
+                masterClients = clientRows.slice(1).map(row => ({
+                    id: row[cIdx.id !== -1 ? cIdx.id : 0], name: row[cIdx.name !== -1 ? cIdx.name : 1], rif: row[cIdx.rif !== -1 ? cIdx.rif : 2], tel: row[cIdx.tel !== -1 ? cIdx.tel : 3], wa: row[cIdx.wa !== -1 ? cIdx.wa : 4], dir: row[cIdx.dir !== -1 ? cIdx.dir : 6], type: row[cIdx.type !== -1 ? cIdx.type : 7]
+                }));
+            }
+            processTasa(); updateCategories(); renderCatalog(); calcAlevenca();
+        }
+
+        function setupColumnMapping(headers) {
+            const mappingSelects = document.querySelectorAll('.col-map');
+            mappingSelects.forEach((sel) => {
+                const currentVal = sel.value;
+                sel.innerHTML = headers.map((h, i) => `<option value="${i}">${h || `Col ${i+1}`}</option>`).join('');
+                if(!currentVal) {
+                    if(sel.id === 'col-id') sel.value = 0; if(sel.id === 'col-name') sel.value = 1; if(sel.id === 'col-brand') sel.value = 2;
+                    if(sel.id === 'col-cat') sel.value = 3; if(sel.id === 'col-med') sel.value = 4; if(sel.id === 'col-equi') sel.value = 5;
+                    if(sel.id === 'col-stat') sel.value = 6; if(sel.id === 'col-oferta') sel.value = 7; if(sel.id === 'col-referencia') sel.value = 8;
+                    if(sel.id === 'col-company') sel.value = 9; if(sel.id === 'col-tasa') sel.value = 10;
+                } else { sel.value = currentVal; }
+                sel.onchange = () => { if(sel.id === 'col-tasa') { processTasa(); calcAlevenca(); } if(sel.id === 'col-cat') updateCategories(); renderCatalog(); };
+            });
+        }
+
+        function processTasa() {
+            const tIdx = parseInt(document.getElementById('col-tasa').value);
+            if (masterItems.length > 0) {
+                const rawTasa = masterItems[0][tIdx];
+                currentTasa = parseFloat(rawTasa) || 1.0;
+                document.getElementById('display-tasa').textContent = `${currentTasa.toFixed(2)} Bs.`;
+            }
+        }
+
+        function updateCategories() {
+            const cIdx = parseInt(document.getElementById('col-cat').value);
+            const cats = [...new Set(masterItems.map(item => item[cIdx] || 'General'))].sort();
+            document.getElementById('catFilter').innerHTML = '<option value="Todos">-- TODOS --</option>' + cats.map(c => `<option value="${c}">${c}</option>`).join('');
+        }
+
+        function renderCatalog() {
+            const grid = document.getElementById('catalog-grid');
+            grid.innerHTML = ''; if (masterItems.length === 0) return;
+            const selCat = document.getElementById('catFilter').value;
+            const c = { id: parseInt(document.getElementById('col-id').value), n: parseInt(document.getElementById('col-name').value), b: parseInt(document.getElementById('col-brand').value), cat: parseInt(document.getElementById('col-cat').value), med: parseInt(document.getElementById('col-med').value), equi: parseInt(document.getElementById('col-equi').value), o: parseInt(document.getElementById('col-oferta').value), r: parseInt(document.getElementById('col-referencia').value), s: parseInt(document.getElementById('col-stat').value) };
+            
+            masterItems.forEach((item, index) => {
+                const itemCat = item[c.cat] || 'General';
+                if(selCat !== 'Todos' && itemCat !== selCat) return;
+                if(!item[c.s]?.toString().toLowerCase().includes('disponible')) return;
+                const price = currentCurrency === 'USD' ? parseFloat(item[c.o]) : parseFloat(item[c.r]);
+                const card = document.createElement('div');
+                card.className = "glass-card p-4 rounded-3xl flex flex-col justify-between border-cyan-900/30 hover:border-cyan-400/50 transition-all";
+                card.innerHTML = `<div class="space-y-1 mb-3"><div class="flex justify-between items-start"><span class="text-[7px] font-black text-cyan-400 bg-cyan-400/10 px-2 py-0.5 rounded-md uppercase tracking-widest">${itemCat}</span><span class="text-[7px] text-slate-500 font-bold mono">${item[c.id] || ''}</span></div><h4 class="text-xs font-black leading-tight text-white h-8 overflow-hidden uppercase">${item[c.n]}</h4><div class="text-[8px] text-slate-400 space-y-0.5"><p class="font-black text-cyan-500/60">${item[c.b] || ''}</p><p class="italic mono">${item[c.med] ? '>> ' + item[c.med] : ''}</p>${item[c.equi] ? `<p class="text-emerald-400/80">EQ: ${item[c.equi]}</p>` : ''}</div></div><div class="pt-2 border-t border-cyan-900/50 flex justify-between items-center"><p class="font-black text-white text-[11px] mono">${currentCurrency === 'USD' ? '$' : 'REF $'} ${price.toLocaleString('es-VE', {minimumFractionDigits: 2})}</p><button onclick="addToCart(${index})" class="btn-fsc p-2 rounded-xl active:scale-90 transition-all text-black"><i data-lucide="plus" class="w-3 h-3"></i></button></div>`;
+                grid.appendChild(card);
+            });
+            lucide.createIcons();
+        }
+
+        function addToCart(index) {
+            const item = masterItems[index];
+            const c = { n: parseInt(document.getElementById('col-name').value), o: parseInt(document.getElementById('col-oferta').value), r: parseInt(document.getElementById('col-referencia').value) };
+            cart.push({ name: item[c.n], priceOferta: parseFloat(item[c.o]) || 0, priceRef: parseFloat(item[c.r]) || 0, qty: 1 });
+            updateCartUI();
+        }
+
+        function updateCartUI() {
+            const container = document.getElementById('cart-items');
+            container.innerHTML = ''; let tO = 0, tRBs = 0, tRUsd = 0;
+            cart.forEach((item, i) => {
+                tO += item.priceOferta * item.qty; tRUsd += item.priceRef * item.qty; tRBs += item.priceRef * currentTasa * item.qty;
+                const showPrice = currentCurrency === 'USD' ? item.priceOferta : item.priceRef * currentTasa;
+                const div = document.createElement('div');
+                div.className = "glass-card p-4 rounded-2xl flex justify-between items-center border-cyan-900/40";
+                div.innerHTML = `<div class="flex-1"><p class="text-[10px] font-black text-white uppercase">${item.name}</p><p class="text-[9px] text-cyan-400 font-bold mono">${currentCurrency === 'USD' ? '$' : 'Bs.'} ${showPrice.toLocaleString('es-VE', {minimumFractionDigits: 2})}</p></div><div class="flex items-center gap-3"><button onclick="cart.splice(${i}, 1); updateCartUI();" class="text-slate-600 hover:text-red-500"><i data-lucide="trash-2" class="w-4 h-4"></i></button><input type="number" value="${item.qty}" onchange="cart[${i}].qty = parseInt(this.value); updateCartUI();" class="w-12 bg-black border border-cyan-900 rounded p-1.5 text-center text-[10px] text-cyan-400 outline-none mono font-bold"></div>`;
+                container.appendChild(div);
+            });
+            document.getElementById('cart-badge').textContent = cart.length;
+            document.getElementById('cart-badge').classList.toggle('hidden', cart.length === 0);
+            const main = currentCurrency === 'USD' ? tO : tRBs;
+            const alt = currentCurrency === 'USD' ? tRBs : tRUsd;
+            document.getElementById('cart-total-main').textContent = `${currentCurrency === 'USD' ? '$' : 'Bs.'} ${main.toLocaleString('es-VE', {minimumFractionDigits: 2})}`;
+            document.getElementById('cart-total-alt').textContent = `${alt.toLocaleString('es-VE', {minimumFractionDigits: 2})} ${currentCurrency === 'USD' ? 'Bs.' : '$'}`;
+            lucide.createIcons();
+        }
+
+        function clearCart() { cart = []; updateCartUI(); }
+
+        function searchClientCRM() {
+            const query = document.getElementById('clientSearch').value.toLowerCase();
+            const suggestions = document.getElementById('crm-suggestions');
+            if(query.length < 2) { suggestions.classList.add('hidden'); return; }
+            const filtered = masterClients.filter(c => c.name?.toLowerCase().includes(query) || c.rif?.toLowerCase().includes(query));
+            if(filtered.length > 0) {
+                suggestions.innerHTML = filtered.map(c => `<div onclick="selectClient('${c.rif}')" class="suggestion-item p-4 border-b border-cyan-900/30 cursor-pointer"><p class="text-[10px] font-black text-white uppercase">${c.name}</p><p class="text-[8px] text-cyan-500 uppercase mono">${c.rif}</p></div>`).join('');
+                suggestions.classList.remove('hidden');
+            } else { suggestions.classList.add('hidden'); selectedClient = null; document.getElementById('client-info-display').textContent = "Cliente no registrado (Modo Manual)"; }
+        }
+
+        function selectClient(rif) {
+            selectedClient = masterClients.find(c => c.rif === rif);
+            document.getElementById('clientSearch').value = selectedClient.name;
+            document.getElementById('crm-suggestions').classList.add('hidden');
+            document.getElementById('client-info-display').textContent = `✓ VINCULADO: ${selectedClient.rif} (${selectedClient.type || 'CLIENTE'})`;
+        }
+
+        function generateNexusPDF() {
+            if(cart.length === 0) return;
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const coIdx = parseInt(document.getElementById('col-company').value);
+            const empresa = masterItems.length > 0 ? masterItems[0][coIdx] : "FONSECA SOLUCIONES COMERCIALES";
+
+            doc.setFont("helvetica", "bold"); doc.setFontSize(26); doc.setTextColor(0, 31, 63);
+            doc.text("FSC", 15, 25);
+            doc.setFontSize(10); doc.setTextColor(0, 229, 255);
+            doc.text("NEXUS ENGINEERING REPORT", 38, 25);
+            
+            doc.setFontSize(9); doc.setTextColor(80); 
+            doc.text(`EMISOR: ${empresa.toUpperCase()}`, 15, 35);
+            doc.text(`FECHA: ${new Date().toLocaleDateString()}`, 195, 35, { align: "right" });
+            if (currentCurrency === 'VEF') {
+                doc.setFont("helvetica", "bold"); doc.setTextColor(0, 150, 180);
+                doc.text(`TASA BCV: ${currentTasa.toFixed(2)} Bs/$`, 195, 42, { align: "right" });
+            }
+
+            doc.setFillColor(0, 10, 26); doc.rect(15, 48, 180, 25, 'F');
+            doc.setFontSize(10); doc.setTextColor(255);
+            const cName = selectedClient ? selectedClient.name : document.getElementById('clientSearch').value;
+            doc.text(`ATENCIÓN A: ${cName.toUpperCase()}`, 20, 56);
+            if(selectedClient) {
+                doc.setFontSize(8); doc.setTextColor(0, 229, 255);
+                doc.text(`RIF: ${selectedClient.rif}  |  CONTACTO: ${selectedClient.tel || 'N/A'}`, 20, 62);
+                doc.setTextColor(180);
+                doc.text(`UBICACIÓN: ${selectedClient.dir || 'N/A'}`, 20, 67);
+            }
+
+            let headers = currentCurrency === 'USD' ? [['CANT', 'ESPECIFICACIÓN TÉCNICA', 'UNIT ($)', 'TOTAL ($)']] : [['CANT', 'ESPECIFICACIÓN TÉCNICA', 'REF ($)', 'CÁLCULO (BS)', 'TOTAL (BS)']];
+            let rows = cart.map(it => {
+                if(currentCurrency === 'USD') return [it.qty, it.name, `$ ${it.priceOferta.toFixed(2)}`, `$ ${(it.priceOferta*it.qty).toFixed(2)}`];
+                const pBs = it.priceRef * currentTasa;
+                return [it.qty, it.name, `$ ${it.priceRef.toFixed(2)}`, `${pBs.toFixed(2)} Bs.`, `${(pBs*it.qty).toFixed(2)} Bs.`];
+            });
+            doc.autoTable({ startY: 78, head: headers, body: rows, headStyles: { fillColor: [0, 31, 63], textColor: [0, 229, 255] }, styles: { fontSize: 8, cellPadding: 4 } });
+
+            let finalY = doc.lastAutoTable.finalY + 15;
+            const tSum = currentCurrency === 'USD' ? cart.reduce((acc, it) => acc + (it.priceOferta*it.qty), 0) : cart.reduce((acc, it) => acc + (it.priceRef*currentTasa*it.qty), 0);
+            const tRef = cart.reduce((acc, it) => acc + (it.priceRef*it.qty), 0);
+            
+            doc.setFontSize(14); doc.setFont("helvetica", "bold"); doc.setTextColor(0, 31, 63);
+            doc.text(`TOTAL NETO A PAGAR: ${currentCurrency === 'USD' ? '$' : 'Bs.'} ${tSum.toLocaleString('es-VE', {minimumFractionDigits: 2})}`, 195, finalY, { align: "right" });
+            
+            if (currentCurrency === 'VEF') { 
+                doc.setFontSize(9); doc.setFont("helvetica", "italic"); doc.setTextColor(100);
+                doc.text(`Inversión Ref: $ ${tRef.toLocaleString('es-VE', {minimumFractionDigits: 2})}`, 195, finalY + 8, { align: "right" });
+                doc.setFontSize(7); doc.text("Los precios fueron calculados según la tasa vigente del BCV para el día de emisión.", 195, finalY + 13, { align: "right" }); 
+                finalY += 20; 
+            } else finalY += 20;
+
+            doc.setDrawColor(0, 31, 63); doc.setLineWidth(0.5); doc.line(15, finalY, 195, finalY);
+            finalY += 10; doc.setFontSize(9); doc.setFont("helvetica", "bold"); doc.setTextColor(0, 31, 63);
+            doc.text("PROCEDIMIENTO DE PAGO:", 15, finalY);
+            doc.setFont("helvetica", "normal"); doc.setTextColor(100);
+            doc.text(doc.splitTextToSize(document.getElementById('config-pagos').value || "Favor consultar con su asesor comercial.", 180), 15, finalY + 6);
+
+            finalY = 282; doc.setFontSize(7); doc.setTextColor(150);
+            doc.text("FONSECA SOLUCIONES COMERCIALES", 105, finalY, { align: "center" });
+
+            doc.save(`FSC_Nexus_Presupuesto_${cName.replace(/\s/g, '_')}.pdf`);
+        }
+
+        // --- SISTEMA ALEVENCA ---
+        function updateAlevencaDropdown() {
+            const select = document.getElementById('al-saved-projects');
+            select.innerHTML = '<option value="-1">-- NUEVO PROYECTO --</option>';
+            alevencaData.forEach((proj, idx) => {
+                select.innerHTML += `<option value="${idx}">${proj.Cliente} (${proj.Estado})</option>`;
+            });
+            select.value = currentAlevencaIndex;
+        }
+
+        function loadAlevencaProject() {
+            const idx = parseInt(document.getElementById('al-saved-projects').value);
+            currentAlevencaIndex = idx;
+            if (idx === -1) {
+                document.getElementById('al-cliente').value = '';
+                document.getElementById('al-tel').value = '';
+                document.getElementById('al-dir').value = '';
+                document.getElementById('al-desc').value = '';
+                document.getElementById('al-divisa').value = '';
+                document.getElementById('al-ref').value = '';
+                document.getElementById('al-abono').value = '';
+                document.getElementById('al-abono-adic').value = '';
+                document.getElementById('al-fecha-adic').value = '';
+                document.getElementById('al-estado').selectedIndex = 0;
+                document.getElementById('al-metodo').selectedIndex = 0;
+            } else {
+                const proj = alevencaData[idx];
+                document.getElementById('al-cliente').value = proj.Cliente || '';
+                document.getElementById('al-tel').value = proj["Teléfono"] || '';
+                document.getElementById('al-dir').value = proj["Dirección"] || '';
+                document.getElementById('al-desc').value = proj["Descripción"] || '';
+                document.getElementById('al-divisa').value = proj["Precio Divisa"] || '';
+                document.getElementById('al-ref').value = proj["Precio Ref"] || '';
+                document.getElementById('al-abono').value = proj["Abono Inicial"] || '';
+                document.getElementById('al-abono-adic').value = proj["Abono Adicional"] || '';
+                document.getElementById('al-fecha-adic').value = proj["Fecha Adicional"] || '';
+                
+                const estadoSelect = document.getElementById('al-estado');
+                for(let i=0; i<estadoSelect.options.length; i++) {
+                    if(estadoSelect.options[i].value === proj.Estado) estadoSelect.selectedIndex = i;
+                }
+                
+                const metodoSelect = document.getElementById('al-metodo');
+                for(let i=0; i<metodoSelect.options.length; i++) {
+                    if(metodoSelect.options[i].value === proj["Método Pago"]) metodoSelect.selectedIndex = i;
+                }
+            }
+            calcAlevenca();
+        }
+
+        function calcAlevenca() {
+            const div = parseFloat(document.getElementById('al-divisa').value) || 0;
+            const ref = parseFloat(document.getElementById('al-ref').value) || 0;
+            const abonoBase = parseFloat(document.getElementById('al-abono').value) || 0;
+            const abonoAdicBase = parseFloat(document.getElementById('al-abono-adic').value) || 0;
+            const metodo = document.getElementById('al-metodo').value;
+
+            let total = 0;
+            let abono = 0;
+            let abonoAdic = 0;
+            let monedaStr = '';
+
+            if (metodo === 'Oferta en Divisa') {
+                total = div;
+                abono = abonoBase;
+                abonoAdic = abonoAdicBase;
+                monedaStr = '$';
+                document.getElementById('al-moneda-label').textContent = 'Cálculo en Dólares';
+            } else {
+                total = ref * currentTasa;
+                abono = abonoBase * currentTasa;
+                abonoAdic = abonoAdicBase * currentTasa;
+                monedaStr = 'Bs.';
+                document.getElementById('al-moneda-label').textContent = `Tasa BCV: ${currentTasa.toFixed(2)} Bs/$`;
+            }
+
+            const totalAbonado = abono + abonoAdic;
+            let saldo = total - totalAbonado;
+            if (saldo < 0) saldo = 0;
+
+            document.getElementById('al-total-proj').textContent = `${monedaStr} ${total.toLocaleString('es-VE', {minimumFractionDigits: 2})}`;
+            document.getElementById('al-total-abono').textContent = `${monedaStr} ${totalAbonado.toLocaleString('es-VE', {minimumFractionDigits: 2})}`;
+            document.getElementById('al-saldo').textContent = `${monedaStr} ${saldo.toLocaleString('es-VE', {minimumFractionDigits: 2})}`;
+        }
+
+        function saveAlevencaProject() {
+            const cliente = document.getElementById('al-cliente').value;
+            if(!cliente) { alert("Debe ingresar un nombre de cliente."); return; }
+
+            const projData = {
+                "Fecha Ingreso": new Date().toLocaleDateString(),
+                "Cliente": cliente,
+                "Teléfono": document.getElementById('al-tel').value,
+                "Estado": document.getElementById('al-estado').value,
+                "Dirección": document.getElementById('al-dir').value,
+                "Descripción": document.getElementById('al-desc').value,
+                "Método Pago": document.getElementById('al-metodo').value,
+                "Precio Divisa": parseFloat(document.getElementById('al-divisa').value) || 0,
+                "Precio Ref": parseFloat(document.getElementById('al-ref').value) || 0,
+                "Abono Inicial": parseFloat(document.getElementById('al-abono').value) || 0,
+                "Abono Adicional": parseFloat(document.getElementById('al-abono-adic').value) || 0,
+                "Fecha Adicional": document.getElementById('al-fecha-adic').value,
+                "Saldo": parseFloat(document.getElementById('al-saldo').textContent.replace(/[^0-9.,]/g, '').replace(',', '.')) || 0
+            };
+
+            if (currentAlevencaIndex >= 0) {
+                alevencaData[currentAlevencaIndex] = projData;
+                alert("✓ Proyecto de Alevenca actualizado correctamente.");
+            } else {
+                alevencaData.push(projData);
+                currentAlevencaIndex = alevencaData.length - 1;
+                alert("✓ Nuevo proyecto guardado en memoria.\nUsa el botón 'BD' arriba para descargar en Excel.");
+            }
+            
+            updateAlevencaDropdown();
+        }
+
+        function exportAlevencaExcel() {
+            if(alevencaData.length === 0) { alert("No hay proyectos guardados en esta sesión actual."); return; }
+            const ws = XLSX.utils.json_to_sheet(alevencaData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Proyectos Alevenca");
+            XLSX.writeFile(wb, "Historial_Proyectos_Alevenca.xlsx");
+        }
+
+        function generateAlevencaPDF() {
+            const cliente = document.getElementById('al-cliente').value;
+            if(!cliente) { alert("Por favor, ingrese el nombre del cliente para el presupuesto."); return; }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            const tel = document.getElementById('al-tel').value || "N/A";
+            const dir = document.getElementById('al-dir').value || "N/A";
+            const desc = document.getElementById('al-desc').value || "Sin descripción.";
+            const divisa = parseFloat(document.getElementById('al-divisa').value) || 0;
+            const ref = parseFloat(document.getElementById('al-ref').value) || 0;
+            const estado = document.getElementById('al-estado').value;
+            const metodo = document.getElementById('al-metodo').value;
+            const abonoBase = parseFloat(document.getElementById('al-abono').value) || 0;
+            const abonoAdicBase = parseFloat(document.getElementById('al-abono-adic').value) || 0;
+            const fechaAdic = document.getElementById('al-fecha-adic').value || "-";
+            const fechaHoy = new Date().toLocaleDateString('es-VE');
+
+            let total = metodo === 'Oferta en Divisa' ? divisa : ref * currentTasa;
+            let abono = metodo === 'Oferta en Divisa' ? abonoBase : abonoBase * currentTasa;
+            let abonoAdic = metodo === 'Oferta en Divisa' ? abonoAdicBase : abonoAdicBase * currentTasa;
+            let moneda = metodo === 'Oferta en Divisa' ? '$' : 'Bs.';
+            let saldo = total - abono - abonoAdic;
+            if (saldo < 0) saldo = 0;
+
+            // 1. HEADER (Rojo y Letras Blancas)
+            doc.setFillColor(204, 0, 0); // Rojo Alevenca
+            doc.rect(15, 15, 115, 14, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(13);
+            doc.text("CONTROL DE PROYECTO - ALEVENCA", 18, 24);
+
+            // 2. SUBTÍTULO
+            doc.setTextColor(100);
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "italic");
+            doc.text("Asesor de Ventas Freelance: Luis Emilio Fonseca", 15, 36);
+
+            // 3. RECUADRO SUPERIOR DERECHO
+            doc.setDrawColor(200);
+            doc.setFillColor(248, 248, 248);
+            doc.rect(135, 15, 60, 24, 'FD');
+            doc.setTextColor(80);
+            doc.setFontSize(8);
+            doc.setFont("helvetica", "bold");
+            doc.text(`FECHA: ${fechaHoy}`, 138, 21);
+            doc.text(`PAGO: ${metodo.toUpperCase()}`, 138, 28);
+            doc.setTextColor(204, 0, 0);
+            doc.text(`ESTADO: ${estado.toUpperCase()}`, 138, 35);
+
+            // 4. DATOS CLIENTE
+            doc.setTextColor(0);
+            doc.setFontSize(11);
+            doc.setFont("helvetica", "bold");
+            doc.text("FICHA DEL CLIENTE", 15, 52);
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(10);
+            doc.text(`Nombre / Empresa: ${cliente.toUpperCase()}`, 15, 59);
+            doc.text(`Teléfono: ${tel}`, 15, 65);
+            const dirLines = doc.splitTextToSize(`Dirección de Obra: ${dir}`, 180);
+            doc.text(dirLines, 15, 71);
+
+            // 5. DESCRIPCIÓN DEL PROYECTO
+            let startY = 71 + (dirLines.length * 6) + 6;
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(11);
+            doc.text("DESCRIPCIÓN DEL PRESUPUESTO", 15, startY);
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(10);
+            const descLines = doc.splitTextToSize(desc, 180);
+            doc.text(descLines, 15, startY + 7);
+
+            // 6. FINANZAS Y ABONOS
+            let finY = startY + 7 + (descLines.length * 6) + 12;
+            doc.setFillColor(250, 250, 250);
+            doc.setDrawColor(204, 0, 0);
+            doc.setLineWidth(0.5);
+            doc.rect(15, finY, 180, 50, 'FD');
+
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(11);
+            doc.setTextColor(0);
+            doc.text("RESUMEN FINANCIERO", 20, finY + 8);
+            
+            const isEsperando = (estado === 'Esperando Aprobación');
+
+            if (isEsperando || metodo === 'Precio Ref.') {
+                doc.setFontSize(8);
+                doc.setTextColor(100);
+                doc.text(`Tasa BCV Aplicada: ${currentTasa.toFixed(2)} Bs/$`, 145, finY + 8);
+            }
+
+            doc.setFontSize(10);
+            doc.setTextColor(50);
+            doc.setFont("helvetica", "normal");
+            
+            if (isEsperando) {
+                // Mostrar AMBAS opciones si está esperando aprobación
+                doc.text("OPCIÓN 1: PAGO EN DIVISA EXTRANJERA", 20, finY + 18);
+                doc.setFont("helvetica", "bold");
+                doc.text(`$ ${divisa.toLocaleString('es-VE', {minimumFractionDigits: 2})}`, 185, finY + 18, {align: "right"});
+                
+                doc.setFont("helvetica", "normal");
+                doc.text("OPCIÓN 2: PAGO EN BOLÍVARES (TASA BCV)", 20, finY + 28);
+                const refBs = ref * currentTasa;
+                doc.setFont("helvetica", "bold");
+                doc.text(`Bs. ${refBs.toLocaleString('es-VE', {minimumFractionDigits: 2})}`, 185, finY + 28, {align: "right"});
+                
+                doc.setFontSize(8); doc.setTextColor(150); doc.setFont("helvetica", "normal");
+                doc.text(`(Base Ref: $ ${ref.toLocaleString('es-VE', {minimumFractionDigits: 2})})`, 145, finY + 28, {align: "right"});
+                
+                const totalAbonoBase = abonoBase + abonoAdicBase;
+                if (totalAbonoBase > 0) {
+                    doc.setFontSize(10); doc.setTextColor(50);
+                    doc.text(`Abonos Registrados (Base $):`, 20, finY + 38);
+                    doc.text(`- $ ${totalAbonoBase.toLocaleString('es-VE', {minimumFractionDigits: 2})}`, 185, finY + 38, {align: "right"});
+                } else {
+                    doc.setFontSize(10); doc.setTextColor(204, 0, 0); doc.setFont("helvetica", "italic");
+                    doc.text("Presupuesto Sujeto a Aprobación", 20, finY + 42);
+                }
+
+            } else {
+                // Lógica Estándar (En Proceso, Culminado, etc) - Solo el método acordado
+                doc.text(`Costo Estimado del Proyecto:`, 20, finY + 18);
+                doc.text(`${moneda} ${total.toLocaleString('es-VE', {minimumFractionDigits: 2})}`, 185, finY + 18, {align: "right"});
+                if (metodo === 'Precio Ref.') {
+                    doc.setFontSize(8); doc.setTextColor(150);
+                    doc.text(`(Ref: $ ${ref.toLocaleString('es-VE', {minimumFractionDigits: 2})})`, 145, finY + 18, {align: "right"});
+                    doc.setFontSize(10); doc.setTextColor(50);
+                }
+
+                doc.text(`Abono Inicial Recibido:`, 20, finY + 25);
+                doc.text(`- ${moneda} ${abono.toLocaleString('es-VE', {minimumFractionDigits: 2})}`, 185, finY + 25, {align: "right"});
+                if (metodo === 'Precio Ref.' && abonoBase > 0) {
+                    doc.setFontSize(8); doc.setTextColor(150);
+                    doc.text(`(Ref: $ ${abonoBase.toLocaleString('es-VE', {minimumFractionDigits: 2})})`, 145, finY + 25, {align: "right"});
+                    doc.setFontSize(10); doc.setTextColor(50);
+                }
+
+                if(abonoAdicBase > 0) {
+                    doc.text(`Abono Adicional (${fechaAdic}):`, 20, finY + 32);
+                    doc.text(`- ${moneda} ${abonoAdic.toLocaleString('es-VE', {minimumFractionDigits: 2})}`, 185, finY + 32, {align: "right"});
+                    if (metodo === 'Precio Ref.') {
+                        doc.setFontSize(8); doc.setTextColor(150);
+                        doc.text(`(Ref: $ ${abonoAdicBase.toLocaleString('es-VE', {minimumFractionDigits: 2})})`, 145, finY + 32, {align: "right"});
+                        doc.setFontSize(10); doc.setTextColor(50);
+                    }
+                }
+
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(14);
+                doc.setTextColor(204, 0, 0); // Rojo Alevenca
+                doc.text(`SALDO PENDIENTE:`, 20, finY + 44);
+                doc.text(`${moneda} ${saldo.toLocaleString('es-VE', {minimumFractionDigits: 2})}`, 185, finY + 44, {align: "right"});
+            }
+
+            // 7. PIE DE PÁGINA CONDICIONAL
+            doc.setTextColor(80);
+            doc.setFont("helvetica", "italic");
+            doc.setFontSize(9);
+            
+            let footerNote = "";
+            if (isEsperando) {
+                footerNote = "El precio oferta es solo para pagos en Divisa Extranjera, y el Precio Referencia es para pagos en Bs. a la Tasa del dia fijada por el Banco Central de Venezuela";
+            } else if (metodo === 'Oferta en Divisa') {
+                footerNote = "El saldo debe cancelarse estrictamente en moneda extranjera.";
+            } else {
+                footerNote = "El saldo se calcula según la tasa del día fijada por el Banco Central de Venezuela.";
+            }
+            
+            const footerLines = doc.splitTextToSize(footerNote, 180);
+            doc.text(footerLines, 15, doc.internal.pageSize.height - 20);
+
+            doc.save(`Alevenca_Presupuesto_${cliente.replace(/\s/g, '_')}.pdf`);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => { try { lucide.createIcons(); } catch(e) {} });
+    </script>
+</body>
+</html>
