@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
+    <!-- META ETIQUETAS PWA PARA ANDROID E IOS -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="FSC IVA">
+    <meta name="theme-color" content="#020617">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2991/2991148.png">
+
+    <title>Calculadora de IVA 16% - FSC</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #020617;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .glass-card {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(56, 189, 248, 0.15);
+        }
+        .active-btn {
+            background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+            box-shadow: 0 4px 15px rgba(6, 182, 212, 0.3);
+        }
+    </style>
+</head>
+<body class="text-slate-100 min-h-screen flex flex-col justify-between">
+
+    <!-- CONTENEDOR PRINCIPAL -->
+    <div class="w-full max-w-md mx-auto p-4 space-y-4">
+        
+        <!-- CABECERA -->
+        <header class="flex items-center justify-between py-2 px-1">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center font-black text-cyan-400 tracking-tighter text-lg">
+                    FSC
+                </div>
+                <div>
+                    <h1 class="text-md font-black tracking-tight text-white uppercase">FSC IVA Fast</h1>
+                    <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Calculador de IVA 16% v2.0</p>
+                </div>
+            </div>
+            <div class="px-2.5 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-[9px] font-black text-cyan-400 tracking-widest uppercase">
+                PWA READY
+            </div>
+        </header>
+
+        <!-- BANNER DE INSTALACIÓN DINÁMICO (Se muestra solo si es instalable) -->
+        <div id="install-pwa-container" class="hidden glass-card p-4 rounded-2xl border-emerald-500/30 bg-emerald-500/5 flex flex-col gap-3">
+            <div class="flex items-start gap-3">
+                <div class="p-2 bg-emerald-500/10 rounded-xl text-emerald-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                </div>
+                <div class="space-y-0.5">
+                    <h4 class="text-xs font-black uppercase text-white">Instalar FSC IVA Fast</h4>
+                    <p class="text-[10px] text-slate-400">Añade un acceso directo en tu inicio para abrirla a pantalla completa.</p>
+                </div>
+            </div>
+            <button onclick="installPWA()" class="w-full py-2.5 bg-emerald-500 text-slate-950 rounded-xl font-black text-[10px] uppercase tracking-wider active:scale-95 transition-all shadow-lg shadow-emerald-500/10">
+                Instalar Ahora
+            </button>
+        </div>
+
+        <!-- SELECTOR DE MONEDA -->
+        <div class="grid grid-cols-3 gap-2 bg-slate-900/60 p-1.5 rounded-2xl border border-slate-800">
+            <button onclick="setCurrency('$')" id="btn-$" class="active-btn py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all text-white">
+                Dólares ($)
+            </button>
+            <button onclick="setCurrency('Bs')" id="btn-Bs" class="py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all text-slate-400">
+                Bolívares (Bs)
+            </button>
+            <button onclick="setCurrency('USDT')" id="btn-USDT" class="py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all text-slate-400">
+                USDT
+            </button>
+        </div>
+
+        <!-- FORMULARIO DE ENTRADA -->
+        <div class="glass-card p-5 rounded-3xl space-y-4 shadow-xl">
+            <!-- Concepto / Detalle -->
+            <div class="space-y-1.5">
+                <label class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Concepto o Producto (Opcional)</label>
+                <div class="relative">
+                    <input type="text" id="concept-input" oninput="calculate()" class="w-full bg-slate-950/80 border border-slate-800 focus:border-cyan-500/50 rounded-2xl p-3.5 pl-4 text-xs text-white placeholder-slate-600 outline-none transition-all" placeholder="Ej. Toma de Agua Daewoo Tico">
+                </div>
+            </div>
+
+            <!-- Base Imponible -->
+            <div class="space-y-1.5">
+                <label class="text-[10px] text-cyan-400 font-bold uppercase tracking-wider">Base Imponible (Monto Neto)</label>
+                <div class="relative">
+                    <span id="currency-symbol" class="absolute left-4 top-1/2 -translate-y-1/2 text-lg font-bold text-cyan-500">$</span>
+                    <input type="number" id="base-input" oninput="calculate()" step="0.01" min="0" inputmode="decimal" pattern="[0-9]*" class="w-full bg-slate-950/80 border border-cyan-500/20 focus:border-cyan-500 rounded-2xl p-4 pl-10 text-xl font-bold text-white placeholder-slate-700 outline-none transition-all" placeholder="0.00" autofocus>
+                </div>
+            </div>
+        </div>
+
+        <!-- RESULTADOS EN TIEMPO REAL -->
+        <div class="grid grid-cols-2 gap-3">
+            <div class="glass-card p-4 rounded-2xl border-slate-800">
+                <p class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">IVA Calculado (16%)</p>
+                <p id="result-iva" class="text-lg font-black text-cyan-400 mt-1">0.00</p>
+            </div>
+            <div class="glass-card p-4 rounded-2xl border-emerald-500/20 bg-emerald-500/5">
+                <p class="text-[9px] text-emerald-400 font-bold uppercase tracking-wider">Total a Cobrar</p>
+                <p id="result-total" class="text-lg font-black text-emerald-400 mt-1">0.00</p>
+            </div>
+        </div>
+
+        <!-- VISTA PREVIA DEL MENSAJE PARA WHATSAPP -->
+        <div class="space-y-2">
+            <div class="flex items-center justify-between px-1">
+                <label class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Vista Previa Mensaje WhatsApp</label>
+                <button onclick="clearAll()" class="text-[9px] text-red-400 hover:text-red-300 font-black uppercase tracking-wider transition-colors">Limpiar</button>
+            </div>
+            <div class="relative bg-slate-950 border border-slate-900 rounded-3xl p-4 min-h-[140px] shadow-inner">
+                <pre id="message-preview" class="text-xs text-slate-300 whitespace-pre-wrap font-sans leading-relaxed"></pre>
+                
+                <!-- Burbuja vacía informativa -->
+                <div id="empty-state" class="absolute inset-0 flex flex-col items-center justify-center text-center p-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#334155" stroke-width="2" class="mb-2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 1 1-7.6-11.7 8.38 8.38 0 0 1 3.8.9L22 2l-2 5.5Z"/></svg>
+                    <p class="text-[10px] text-slate-600 font-bold uppercase tracking-wider">Introduce un monto para generar el texto</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ACCIONES RÁPIDAS -->
+        <div class="grid grid-cols-2 gap-3 pt-2">
+            <!-- BOTÓN DE COPIAR -->
+            <button onclick="copyMessage()" id="btn-copy" class="w-full py-4 bg-slate-900 border border-slate-800 active:bg-slate-800 rounded-2xl flex items-center justify-center gap-2 text-xs font-bold text-white transition-all shadow-md">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                COPIAR TEXTO
+            </button>
+
+            <!-- BOTÓN ENVIAR WHATSAPP -->
+            <button onclick="sendToWhatsApp()" class="w-full py-4 bg-emerald-600 active:bg-emerald-700 rounded-2xl flex items-center justify-center gap-2 text-xs font-black text-white transition-all shadow-lg shadow-emerald-900/20">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="text-white"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.717-1.455L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.37 9.864-9.799.002-2.63-1.023-5.101-2.885-6.97C16.528 2.012 14.077.99 11.517.99c-5.44 0-9.866 4.372-9.87 9.802 0 1.689.453 3.332 1.314 4.793L1.93 20.252l4.717-1.098zm12.39-4.664c-.33-.165-1.95-.963-2.253-1.073-.3-.11-.52-.165-.74.165-.22.33-.85 1.073-1.04 1.293-.19.22-.38.24-.71.075-.33-.165-1.393-.513-2.653-1.638-.98-.874-1.64-1.953-1.83-2.282-.19-.33-.02-.508.145-.671.15-.147.33-.344.495-.516.165-.172.22-.29.33-.483.11-.19.055-.36-.03-.524-.084-.165-.74-1.785-1.015-2.45-.27-.643-.54-.555-.74-.565-.19-.01-.41-.01-.63-.01-.22 0-.58.08-.88.41-.3.33-1.155 1.127-1.155 2.748 0 1.62 1.18 3.19 1.34 3.41.165.22 2.324 3.55 5.63 4.978.787.34 1.4.543 1.88.697.79.25 1.51.215 2.08.13.634-.093 1.95-.797 2.224-1.566.275-.77.275-1.43.193-1.567-.083-.13-.3-.21-.63-.375z"/></svg>
+                ENVIAR A WA
+            </button>
+        </div>
+
+    </div>
+
+    <!-- NOTIFICACIÓN (TOAST) -->
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-cyan-500 text-slate-950 text-xs font-black px-6 py-3 rounded-full shadow-lg opacity-0 transition-all duration-300 pointer-events-none uppercase tracking-wider z-50">
+        ¡Texto copiado con éxito!
+    </div>
+
+    <!-- PIE DE PÁGINA -->
+    <footer class="text-center py-4 opacity-30 text-[9px] font-bold uppercase tracking-[0.3em] text-slate-600">
+        FSC Engineering | Turmero 2026
+    </footer>
+
+    <script>
+        // --- MOTOR DE DETECCIÓN Y CONFIGURACIÓN PWA ---
+        const manifest = {
+            "name": "FSC IVA Fast",
+            "short_name": "FSC IVA",
+            "start_url": ".",
+            "display": "standalone",
+            "background_color": "#020617",
+            "theme_color": "#020617",
+            "description": "Calculadora de IVA 16% con integración directa para WhatsApp",
+            "icons": [{
+                "src": "https://cdn-icons-png.flaticon.com/512/2991/2991148.png",
+                "sizes": "512x512",
+                "type": "image/png",
+                "purpose": "any maskable"
+            }]
+        };
+        const blob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
+        const manifestURL = URL.createObjectURL(blob);
+        const link = document.createElement('link');
+        link.rel = 'manifest';
+        link.href = manifestURL;
+        document.head.appendChild(link);
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('data:application/javascript,' + encodeURIComponent('self.addEventListener("fetch", (e) => { e.respondWith(fetch(e.request)); });'));
+        }
+
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('install-pwa-container').classList.remove('hidden');
+        });
+
+        async function installPWA() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    document.getElementById('install-pwa-container').classList.add('hidden');
+                }
+                deferredPrompt = null;
+            }
+        }
+
+        // --- LÓGICA DE CÁLCULO ---
+        let currentCurrency = '$';
+
+        function setCurrency(symbol) {
+            currentCurrency = symbol;
+            
+            // Actualizar estilo de botones
+            ['$', 'Bs', 'USDT'].forEach(s => {
+                const btn = document.getElementById(`btn-${s}`);
+                if (s === symbol) {
+                    btn.className = "active-btn py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all text-white";
+                } else {
+                    btn.className = "py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all text-slate-400";
+                }
+            });
+
+            // Actualizar símbolo en el input
+            document.getElementById('currency-symbol').textContent = symbol === 'USDT' ? '₮' : (symbol === 'Bs' ? 'Bs' : '$');
+            
+            // Re-calcular
+            calculate();
+        }
+
+        function calculate() {
+            const concept = document.getElementById('concept-input').value.trim();
+            const baseValue = parseFloat(document.getElementById('base-input').value);
+            
+            const emptyState = document.getElementById('empty-state');
+            const preview = document.getElementById('message-preview');
+
+            if (isNaN(baseValue) || baseValue <= 0) {
+                document.getElementById('result-iva').textContent = '0.00';
+                document.getElementById('result-total').textContent = '0.00';
+                preview.textContent = '';
+                emptyState.style.display = 'flex';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+
+            // Cálculos del IVA (16%)
+            const iva = baseValue * 0.16;
+            const total = baseValue + iva;
+
+            // Formateadores numéricos según moneda
+            const formatOpt = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
+            const formattedBase = baseValue.toLocaleString('es-ES', formatOpt);
+            const formattedIva = iva.toLocaleString('es-ES', formatOpt);
+            const formattedTotal = total.toLocaleString('es-ES', formatOpt);
+
+            document.getElementById('result-iva').textContent = `${formattedIva} ${currentCurrency}`;
+            document.getElementById('result-total').textContent = `${formattedTotal} ${currentCurrency}`;
+
+            // Crear plantilla de mensaje formateada profesionalmente
+            let message = `🧾 *DESGLOSE DE PAGO*\n`;
+            message += `───────────────────\n`;
+            if (concept) {
+                message += `📦 *Detalle:* ${concept}\n`;
+            }
+            message += `💵 *Base Imponible:* ${formattedBase} ${currentCurrency}\n`;
+            message += `🔌 *IVA (16%):* ${formattedIva} ${currentCurrency}\n`;
+            message += `───────────────────\n`;
+            message += `🏁 *TOTAL A PAGAR:* *${formattedTotal} ${currentCurrency}*\n`;
+            message += `───────────────────\n`;
+            message += `💡 _FSC Fonseca Soluciones • ¡Gracias por su preferencia!_`;
+
+            preview.textContent = message;
+        }
+
+        function clearAll() {
+            document.getElementById('concept-input').value = '';
+            document.getElementById('base-input').value = '';
+            calculate();
+        }
+
+        function getMessageText() {
+            return document.getElementById('message-preview').textContent;
+        }
+
+        function copyMessage() {
+            const text = getMessageText();
+            if (!text) return;
+
+            const tempTextarea = document.createElement('textarea');
+            tempTextarea.value = text;
+            tempTextarea.style.position = 'fixed'; // Evita scroll molesto en móvil
+            document.body.appendChild(tempTextarea);
+            tempTextarea.select();
+            
+            try {
+                document.execCommand('copy');
+                showToast("¡Mensaje Copiado!");
+            } catch (err) {
+                showToast("Error al copiar. Intente de nuevo.");
+            }
+            
+            document.body.removeChild(tempTextarea);
+        }
+
+        function sendToWhatsApp() {
+            const text = getMessageText();
+            if (!text) return;
+            
+            const url = "https://api.whatsapp.com/send?text=" + encodeURIComponent(text);
+            window.open(url, '_blank');
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = toast.className.replace('opacity-0', 'opacity-100');
+            setTimeout(() => {
+                toast.className = toast.className.replace('opacity-100', 'opacity-0');
+            }, 2000);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador Fonseca v9.6 - Suscripciones Streaming Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #020617; color: #f1f5f9; font-family: 'Inter', system-ui, sans-serif; }
+        .neon-text { color: #38bdf8; text-shadow: 0 0 12px rgba(56, 189, 248, 0.4); }
+        .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(56, 189, 248, 0.2); }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #020617; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
+        
+        #auth-overlay { position: fixed; inset: 0; background: #020617; z-index: 9999; display: flex; align-items: center; justify-content: center; }
+        #main-content { display: none; }
+    </style>
+</head>
+<body>
+
+    <!-- BLOQUEO DE SEGURIDAD -->
+    <div id="auth-overlay">
+        <div class="glass p-8 rounded-3xl w-80 text-center space-y-6 border-sky-500/30 shadow-2xl">
+            <div class="flex justify-center">
+                <div class="p-4 bg-sky-500/10 rounded-full border border-sky-500/40">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                </div>
+            </div>
+            <div class="space-y-2">
+                <h2 class="text-sky-400 font-black text-xs uppercase tracking-widest">Acceso Ingeniería</h2>
+                <p class="text-slate-500 text-[10px] font-bold">INTRODUZCA PIN DE SEGURIDAD</p>
+            </div>
+            <input type="password" id="pin-input" maxlength="4" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-center text-xl tracking-[1em] text-sky-400 outline-none focus:border-sky-500" placeholder="****" autofocus>
+            <button onclick="checkAccess()" class="w-full py-2 bg-sky-500/20 border border-sky-500/30 rounded-lg text-[10px] text-sky-400 font-black uppercase">Verificar Sistema</button>
+        </div>
+    </div>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <div id="main-content" class="p-4 md:p-6 min-h-screen">
+        <div class="max-w-7xl mx-auto space-y-6">
+            
+            <header class="flex flex-col md:flex-row justify-between items-center glass p-6 rounded-3xl border-sky-500/20 shadow-2xl gap-6">
+                <div class="flex items-center gap-4">
+                    <div class="p-3 bg-emerald-500/10 rounded-2xl border border-emerald-500/30 font-black text-emerald-400 tracking-tighter shadow-[0_0_15px_rgba(16,185,129,0.2)]">V9.6</div>
+                    <div>
+                        <h1 class="text-2xl font-black neon-text uppercase tracking-tight">FONSECA 360 SUSCRIPCIONES STREAMING</h1>
+                        <p class="text-slate-500 text-[10px] font-bold uppercase tracking-[0.2em]">Sincronización Total WA & WEB Pro</p>
+                    </div>
+                </div>
+                <div class="bg-blue-500/10 text-sky-400 text-[9px] font-bold px-4 py-2 rounded-full border border-sky-500/20 flex items-center gap-2">
+                    <span class="w-2 h-2 bg-sky-500 rounded-full animate-pulse"></span> PRECIOS DUALES ACTIVADOS
+                </div>
+            </header>
+
+            <div class="grid lg:grid-cols-4 gap-6">
+                
+                <!-- CONFIGURACIÓN -->
+                <aside class="lg:col-span-1 space-y-6">
+                    <div class="glass p-5 rounded-3xl space-y-4 border-sky-400/30 shadow-lg">
+                        <h2 class="text-sky-400 font-bold text-[10px] uppercase tracking-widest flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4a2 2 0 0 1 2-2h5a2 2 0 0 1 2 2v3"/><path d="M20 7V4a2 2 0 0 0-2-2h-5a2 2 0 0 0-2 2v3"/><rect width="18" height="13" x="3" y="7" rx="2"/><path d="M12 12v3"/><path d="M8 12v3"/><path d="M16 12v3"/></svg>
+                            Mapeo de Columnas
+                        </h2>
+                        <div class="space-y-3">
+                            <div class="space-y-1">
+                                <label class="text-[8px] text-slate-500 uppercase font-bold">Columna: Artículo/Servicio</label>
+                                <select id="mapNombre" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-[10px] outline-none focus:border-sky-500 text-slate-300"></select>
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[8px] text-sky-400 uppercase font-bold">Columna: Precio Bolívares</label>
+                                <select id="mapPrecioBs" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-[10px] outline-none focus:border-sky-500 text-slate-300"></select>
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[8px] text-amber-500 uppercase font-bold">Columna: Precio USDT</label>
+                                <select id="mapPrecioBinance" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-[10px] outline-none focus:border-sky-500 text-slate-300"></select>
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[8px] text-emerald-600 uppercase font-bold">Columna: Estatus (Filtro)</label>
+                                <select id="mapStatus" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-[10px] outline-none focus:border-sky-500 text-slate-300"></select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-4 bg-sky-500/5 rounded-2xl border border-sky-500/10">
+                        <p class="text-[9px] text-slate-500 leading-relaxed italic">
+                            * El sistema filtrará automáticamente cualquier fila marcada como "Agotado" y generará el catálogo con ambos precios por defecto.
+                        </p>
+                    </div>
+                </aside>
+
+                <!-- ÁREA DE PROCESAMIENTO -->
+                <main class="lg:col-span-3 space-y-6">
+                    <div class="glass p-5 rounded-3xl shadow-xl space-y-3">
+                        <textarea id="inputExcel" class="w-full h-32 bg-slate-950/50 border border-slate-800 rounded-2xl p-4 text-[11px] font-mono focus:border-sky-400 outline-none resize-none transition-all text-sky-100" placeholder="Pega aquí los datos de tu Excel (Copia y pega desde las celdas)..."></textarea>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <!-- WHATSAPP -->
+                        <div class="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden flex flex-col shadow-2xl">
+                            <div class="bg-emerald-500/5 p-4 border-b border-emerald-500/10 flex justify-between items-center">
+                                <span class="text-emerald-400 text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                                    Salida WhatsApp
+                                </span>
+                                <button onclick="copyTo('whatsappOutput', 'wa-btn')" id="wa-btn" class="px-4 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-emerald-500 text-[10px] font-bold hover:bg-emerald-500/20 transition-colors">COPIAR TEXTO</button>
+                            </div>
+                            <pre id="whatsappOutput" class="p-6 h-[450px] text-[12px] whitespace-pre-wrap font-mono text-slate-300 overflow-y-auto custom-scrollbar bg-slate-950/20"></pre>
+                        </div>
+
+                        <!-- WEB HTML -->
+                        <div class="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden flex flex-col shadow-2xl">
+                            <div class="bg-sky-500/5 p-4 border-b border-sky-500/10 flex justify-between items-center">
+                                <span class="text-sky-400 text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                                    Código HTML Web
+                                </span>
+                                <button onclick="copyTo('htmlOutput', 'web-btn')" id="web-btn" class="px-4 py-1 bg-sky-500/10 border border-sky-500/20 rounded-lg text-sky-400 text-[10px] font-bold hover:bg-sky-500/20 transition-colors">COPIAR CÓDIGO</button>
+                            </div>
+                            <pre id="htmlOutput" class="p-6 h-[450px] text-[11px] font-mono text-slate-500 overflow-y-auto custom-scrollbar break-all bg-slate-950/20"></pre>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const MASTER_PIN = "2026";
+        function checkAccess() {
+            const pin = document.getElementById('pin-input').value;
+            if(pin === MASTER_PIN) {
+                document.getElementById('auth-overlay').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('auth-overlay').style.display = 'none';
+                    document.getElementById('main-content').style.display = 'block';
+                }, 300);
+            } else { 
+                document.getElementById('pin-input').value = '';
+                document.getElementById('pin-input').classList.add('border-red-500');
+                setTimeout(() => document.getElementById('pin-input').classList.remove('border-red-500'), 500);
+            }
+        }
+        document.getElementById('pin-input').addEventListener('input', (e) => { if(e.target.value === MASTER_PIN) checkAccess(); });
+
+        const input = document.getElementById('inputExcel');
+        const selNombre = document.getElementById('mapNombre');
+        const selBs = document.getElementById('mapPrecioBs');
+        const selBinance = document.getElementById('mapPrecioBinance');
+        const selStatus = document.getElementById('mapStatus');
+        const waOutput = document.getElementById('whatsappOutput');
+        const htmlOutput = document.getElementById('htmlOutput');
+
+        function updateSelectors(numCols) {
+            [selNombre, selBs, selBinance, selStatus].forEach(s => {
+                s.innerHTML = '';
+                for(let i=0; i<numCols; i++) s.innerHTML += `<option value="${i}">Columna ${i+1}</option>`;
+            });
+            // Configuración predeterminada inteligente
+            selNombre.value = 0; 
+            selBs.value = 3; 
+            selBinance.value = 2; 
+            selStatus.value = 4;
+        }
+
+        function formatPrice(val, type) {
+            if (!val) return "---";
+            const cleanVal = val.toString().trim();
+            if (type === 'bs') {
+                return cleanVal.toLowerCase().includes('bs') ? cleanVal : `${cleanVal} Bs.`;
+            } else {
+                return cleanVal.includes('$') ? cleanVal : `$${cleanVal}`;
+            }
+        }
+
+        function process() {
+            const rawData = input.value.trim();
+            if(!rawData) return;
+            const lines = rawData.split('\n').filter(l => l.trim() !== '');
+            const numCols = lines[0].split('\t').length;
+            if(selNombre.options.length !== numCols) updateSelectors(numCols);
+
+            const mN = parseInt(selNombre.value);
+            const mB = parseInt(selBs.value);
+            const mBin = parseInt(selBinance.value);
+            const mS = parseInt(selStatus.value);
+
+            const items = [];
+            lines.forEach(line => {
+                const p = line.split('\t');
+                const n = p[mN]?.trim() || '';
+                const bs = p[mB]?.trim() || '';
+                const bin = p[mBin]?.trim() || '';
+                const s = p[mS]?.trim()?.toLowerCase() || '';
+                
+                if (s === 'agotado' || s === 'no' || s === '0') return;
+                if(n) items.push({ n, bs: formatPrice(bs, 'bs'), bin: formatPrice(bin, 'bin') });
+            });
+
+            const fecha = new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
+            
+            // --- WHATSAPP DUAL ---
+            let wa = `### 🚀 **CATÁLOGO SUSCRIPCIONES - FONSECA 360**\n📅 *${fecha}*\n📌 *Precios Actualizados:* Bs / USDT\n\n`;
+            items.forEach(item => {
+                wa += `🔹 ${item.n}: *${item.bs}* | *${item.bin}*\n`;
+            });
+            wa += `\n🎁 **INFORMACIÓN DE COMBOS:**\n• *Combo Oferton:* 1 pantalla Hbo Max + 1 pantalla Amazon Prime Video + 1 pantalla Crunchyroll.\n• *Combo Morocho (2 Pantallas):* Elige entre Super Uno, Prime Video, Disney Premium, Paramount, Crunchyroll, MagisTV, Tele Latino, Hbo Max, Vix+, Canva.\n• *Combo Trio (3 Pantallas):* Elige entre Super Uno, Prime Video, Disney Premium, Paramount, Crunchyroll, MagisTV, Tele Latino, Hbo Max, Vix+, Canva.\n• *Promo Locura (4 Pantallas):* Elige entre Super Uno, Prime Video, Disney Premium, Paramount, Crunchyroll, MagisTV, Tele Latino, Hbo Max, Vix+, Canva.\n\n---\n💳 **MÉTODOS DE PAGO:**\n`;
+            
+            wa += `✅ *PAGO MÓVIL:* C.I V-15.365.780 / 0412-7673393 / Banco Venezuela.\n`;
+            wa += `✅ *BINANCE PAY:* Usuario: Luisvzla81 / ID: 36068708 / emiliofonseca@gmail.com\n`;
+            wa += `✅ *ZINLI:* fonseca.luis2602@gmail.com\n`;
+            wa += `📍 *Turmero, Estado Aragua.*`;
+            
+            waOutput.textContent = wa;
+
+            // --- HTML PARA WEB DUAL ---
+            let htmlCode = `<div style="background:#0f172a;color:white;padding:30px;border-radius:20px;border:1px solid #38bdf8;font-family:sans-serif;max-width:650px;margin:auto;box-shadow:0 20px 50px rgba(0,0,0,0.5);">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+    <div>
+        <h2 style="color:#38bdf8;margin:0;font-size:1.4rem;text-transform:uppercase;">Catálogo Suscripciones - Fonseca 360</h2>
+        <p style="font-size:0.7rem;color:#64748b;margin:2px 0 0 0;text-transform:uppercase;letter-spacing:1px;">📅 Actualizado: ${fecha}</p>
+    </div>
+    <div style="background:rgba(16,185,129,0.1);color:#10b981;font-size:0.6rem;padding:4px 10px;border-radius:20px;font-weight:bold;border:1px solid rgba(16,185,129,0.2);">SISTEMA DUAL</div>
+</div>
+
+<table style="width:100%;border-collapse:collapse;font-size:0.85rem;">
+<tr style="border-bottom:2px solid #38bdf8;text-align:left;color:#94a3b8;font-size:0.7rem;letter-spacing:1px;">
+    <th style="padding:10px;">SERVICIO</th>
+    <th style="padding:10px;text-align:right;">PAGO MÓVIL (BS)</th>
+    <th style="padding:10px;text-align:right;">USDT (BINANCE)</th>
+</tr>`;
+            
+            items.forEach(item => {
+                htmlCode += `<tr>
+    <td style="padding:12px 10px;border-bottom:1px solid #1e293b;color:#cbd5e1;">${item.n}</td>
+    <td style="padding:12px 10px;text-align:right;font-weight:bold;color:#cbd5e1;border-bottom:1px solid #1e293b;">${item.bs}</td>
+    <td style="padding:12px 10px;text-align:right;font-weight:bold;color:#38bdf8;border-bottom:1px solid #1e293b;">${item.bin}</td>
+</tr>`;
+            });
+            
+            htmlCode += `</table>
+
+<div style="margin-top:25px;padding:15px;background:rgba(56,189,248,0.05);border-radius:10px;border-left:4px solid #38bdf8;">
+<strong style="color:#38bdf8;font-size:0.8rem;text-transform:uppercase;">🎁 Información de Combos:</strong>
+<ul style="margin:10px 0 0 0;padding-left:15px;font-size:0.7rem;color:#cbd5e1;line-height:1.6;">
+<li><strong>Combo Oferton:</strong> 1 Hbo Max + 1 Amazon Prime + 1 Crunchyroll.</li>
+<li><strong>Combo Morocho (2 Pantallas):</strong> Elige entre Super Uno, Prime Video, Disney Premium, Paramount, Crunchyroll, MagisTV, Tele Latino, Hbo, Vix+, Canva.</li>
+<li><strong>Combo Trio (3 Pantallas):</strong> Elige entre Super Uno, Prime Video, Disney Premium, Paramount, Crunchyroll, MagisTV, Tele Latino, Hbo, Vix+, Canva.</li>
+<li><strong>Promo Locura (4 Pantallas):</strong> Elige entre Super Uno, Prime Video, Disney Premium, Paramount, Crunchyroll, MagisTV, Tele Latino, Hbo, Vix+, Canva.</li>
+</ul>
+</div>
+
+<div style="margin-top:20px;display:grid;grid-template-columns:1fr 1fr;gap:15px;">
+    <div style="padding:12px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);border-radius:12px;">
+        <strong style="color:#cbd5e1;font-size:0.65rem;text-transform:uppercase;display:block;margin-bottom:5px;">💳 Pago Móvil</strong>
+        <p style="margin:0;font-size:0.7rem;color:#94a3b8;line-height:1.4;">C.I V-15.365.780<br>0412-7673393<br>Bco. Venezuela</p>
+    </div>
+    <div style="padding:12px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);border-radius:12px;">
+        <strong style="color:#38bdf8;font-size:0.65rem;text-transform:uppercase;display:block;margin-bottom:5px;">⚡ Binance Pay</strong>
+        <p style="margin:0;font-size:0.7rem;color:#94a3b8;line-height:1.4;">ID: 36068708<br>Usuario: Luisvzla81<br>emiliofonseca@gmail.com</p>
+    </div>
+    <div style="padding:12px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);border-radius:12px;">
+        <strong style="color:#38bdf8;font-size:0.65rem;text-transform:uppercase;display:block;margin-bottom:5px;">⚡ Zinli</strong>
+        <p style="margin:0;font-size:0.7rem;color:#94a3b8;line-height:1.4;">fonseca.luis2602@gmail.com</p>
+    </div>
+</div>
+
+<p style="text-align:center;font-size:0.6rem;color:#475569;margin-top:25px;letter-spacing:2px;text-transform:uppercase;">📍 Turmero | © 2026 Fonseca Soluciones</p>
+</div>`;
+            htmlOutput.textContent = htmlCode;
+        }
+
+        [input, selNombre, selBs, selBinance, selStatus].forEach(el => el.addEventListener('input', process));
+
+        function copyTo(id, btnId) {
+            const text = document.getElementById(id).textContent;
+            const el = document.createElement('textarea');
+            el.value = text;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            const btn = document.getElementById(btnId);
+            const old = btn.textContent;
+            btn.textContent = '¡SISTEMA COPIADO!';
+            btn.classList.replace('bg-emerald-500/10', 'bg-emerald-500');
+            btn.classList.replace('text-emerald-500', 'text-white');
+            setTimeout(() => { 
+                btn.textContent = old; 
+                btn.classList.replace('bg-emerald-500', 'bg-emerald-500/10');
+                btn.classList.replace('text-white', 'text-emerald-500');
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
