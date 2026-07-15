@@ -9,7 +9,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="FSC IVA">
     <meta name="theme-color" content="#020617">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2991/2991148.png">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/9511/9511854.png">
 
     <title>Calculadora de IVA 16% - FSC</title>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -160,20 +160,19 @@
     <script>
         // --- MOTOR DE DETECCIÓN Y CONFIGURACIÓN PWA ---
         const manifest = {
-            "name": "FSC IVA Fast",
-            "short_name": "FSC IVA",
-            "start_url": ".",
-            "display": "standalone",
-            "background_color": "#020617",
-            "theme_color": "#020617",
-            "description": "Calculadora de IVA 16% con integración directa para WhatsApp",
-            "icons": [{
-                "src": "https://cdn-icons-png.flaticon.com/512/2991/2991148.png",
-                "sizes": "512x512",
-                "type": "image/png",
-                "purpose": "any maskable"
-            }]
-        };
+    "name": "FSC Calculo Rapido de IVA",
+    "short_name": "FSC IVA",
+    "start_url": ".",
+    "display": "standalone",
+    "background_color": "#020617",
+    "theme_color": "#06b6d4",
+    "icons": [{
+        "src": "[https://cdn-icons-png.flaticon.com/512/9511/9511854.png](https://cdn-icons-png.flaticon.com/512/9511/9511854.png)",
+        "sizes": "512x512",
+        "type": "image/png",
+        "purpose": "any maskable"
+    }]
+};
         const blob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
         const manifestURL = URL.createObjectURL(blob);
         const link = document.createElement('link');
