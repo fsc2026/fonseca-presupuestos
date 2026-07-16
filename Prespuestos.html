@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Fonseca Ecosistema 360 - Presupuestos Duales</title>
+    
+    <!-- Tailwind CSS para Estilos Modernos -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkBg: '#090D16',
+                        darkCard: '#131926',
+                        neonBlue: '#00F0FF',
+                        accentBlue: '#2563EB',
+                        goldTank: '#F59E0B'
+                    },
+                    boxShadow: {
+                        'neon-glow': '0 0 15px rgba(0, 240, 255, 0.25)',
+                        'gold-glow': '0 0 15px rgba(245, 158, 11, 0.25)'
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Fuentes de Google e Iconos -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #090D16;
+            -webkit-tap-highlight-color: transparent;
+        }
+        /* Estilizar barras de scroll para un look de ingeniería limpia */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #090D16;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1F2937;
+            border-radius: 3px;
+        }
+        /* Animación de vibración para PIN incorrecto */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-8px); }
+            40%, 80% { transform: translateX(8px); }
+        }
+        .shake-element {
+            animation: shake 0.4s ease-in-out;
+        }
+    </style>
+</head>
+<body class="text-gray-100 min-h-screen flex flex-col justify-between overflow-x-hidden pb-6">
+
+    <!-- PANTALLA DE BLOQUEO POR PIN (Capa de Seguridad 2026) -->
+    <div id="lock-screen" class="fixed inset-0 bg-darkBg/95 backdrop-blur-xl z-50 flex flex-col justify-center items-center px-6 transition-all duration-500">
+        <div class="w-full max-w-xs text-center space-y-6">
+            
+            <!-- Cabecera de Seguridad -->
+            <div class="flex flex-col items-center space-y-2">
+                <div class="relative">
+                    <img id="lock-logo" src="Logo Simple.jpg" alt="Logo de Seguridad" class="w-16 h-16 rounded-2xl border-2 border-cyan-400 shadow-neon-glow object-cover" onerror="this.src='https://placehold.co/150x150/090D16/00F0FF?text=Ecosistema'">
+                    <span class="absolute -bottom-1 -right-1 bg-cyan-500 text-[9px] text-darkBg font-black px-1.5 py-0.5 rounded-full">PIN</span>
+                </div>
+                <h2 class="text-xs font-black tracking-widest text-cyan-400 mt-2">FONSECA ECOSISTEMA 360 SECURE</h2>
+                <p class="text-[9px] text-gray-500 uppercase tracking-widest">Estación Turmero • Base de Operaciones</p>
+            </div>
+            
+            <!-- Mensaje de Estado -->
+            <div class="space-y-1">
+                <p class="text-sm font-semibold text-gray-300" id="lock-status-msg">Ingrese PIN de Acceso</p>
+                <p class="text-[10px] text-gray-500 font-mono">ESTADO: ENCRIPTADO</p>
+            </div>
+            
+            <!-- Indicadores de PIN (4 esferas) -->
+            <div class="flex justify-center space-x-4 py-2" id="pin-indicators">
+                <div class="w-3.5 h-3.5 rounded-full border border-gray-700 bg-gray-900 transition-all duration-200" id="dot-0"></div>
+                <div class="w-3.5 h-3.5 rounded-full border border-gray-700 bg-gray-900 transition-all duration-200" id="dot-1"></div>
+                <div class="w-3.5 h-3.5 rounded-full border border-gray-700 bg-gray-900 transition-all duration-200" id="dot-2"></div>
+                <div class="w-3.5 h-3.5 rounded-full border border-gray-700 bg-gray-900 transition-all duration-200" id="dot-3"></div>
+            </div>
+            
+            <!-- Teclado Numérico Sci-Fi -->
+            <div class="grid grid-cols-3 gap-3 max-w-[240px] mx-auto pt-2">
+                <button onclick="pressKey('1')" class="h-14 w-14 rounded-full bg-darkCard hover:bg-cyan-500/10 border border-gray-800 text-white font-bold text-lg active:scale-95 focus:outline-none transition-all flex items-center justify-center">1</button>
+                <button onclick="pressKey('2')" class="h-14 w-14 rounded-full bg-darkCard hover:bg-cyan-500/10 border border-gray-800 text-white font-bold text-lg active:scale-95 focus:outline-none transition-all flex items-center justify-center">2</button>
+                <button onclick="pressKey('3')" class="h-14 w-14 rounded-full bg-darkCard hover:bg-cyan-500/10 border border-gray-800 text-white font-bold text-lg active:scale-95 focus:outline-none transition-all flex items-center justify-center">3</button>
+                
+                <button onclick="pressKey('4')" class="h-14 w-14 rounded-full bg-darkCard hover:bg-cyan-500/10 border border-gray-800 text-white font-bold text-lg active:scale-95 focus:outline-none transition-all flex items-center justify-center">4</button>
+                <button onclick="pressKey('5')" class="h-14 w-14 rounded-full bg-darkCard hover:bg-cyan-500/10 border border-gray-800 text-white font-bold text-lg active:scale-95 focus:outline-none transition-all flex items-center justify-center">5</button>
+                <button onclick="pressKey('6')" class="h-14 w-14 rounded-full bg-darkCard hover:bg-cyan-500/10 border border-gray-800 text-white font-bold text-lg active:scale-95 focus:outline-none transition-all flex items-center justify-center">6</button>
+                
+                <button onclick="pressKey('7')" class="h-14 w-14 rounded-full bg-darkCard hover:bg-cyan-500/10 border border-gray-800 text-white font-bold text-lg active:scale-95 focus:outline-none transition-all flex items-center justify-center">7</button>
+                <button onclick="pressKey('8')" class="h-14 w-14 rounded-full bg-darkCard hover:bg-cyan-500/10 border border-gray-800 text-white font-bold text-lg active:scale-95 focus:outline-none transition-all flex items-center justify-center">8</button>
+                <button onclick="pressKey('9')" class="h-14 w-14 rounded-full bg-darkCard hover:bg-cyan-500/10 border border-gray-800 text-white font-bold text-lg active:scale-95 focus:outline-none transition-all flex items-center justify-center">9</button>
+                
+                <button onclick="clearPinInput()" class="h-14 w-14 rounded-full bg-red-950/20 hover:bg-red-950/40 border border-red-900/30 text-red-400 font-bold text-sm active:scale-95 focus:outline-none transition-all flex items-center justify-center" title="Reiniciar">
+                    <i class="fa-solid fa-arrow-rotate-left"></i>
+                </button>
+                <button onclick="pressKey('0')" class="h-14 w-14 rounded-full bg-darkCard hover:bg-cyan-500/10 border border-gray-800 text-white font-bold text-lg active:scale-95 focus:outline-none transition-all flex items-center justify-center">0</button>
+                <button onclick="backspacePin()" class="h-14 w-14 rounded-full bg-gray-900 hover:bg-gray-800 border border-gray-800 text-gray-400 font-bold text-sm active:scale-95 focus:outline-none transition-all flex items-center justify-center" title="Borrar">
+                    <i class="fa-solid fa-delete-left"></i>
+                </button>
+            </div>
+            
+        </div>
+    </div>
+
+    <!-- INTERFAZ PRINCIPAL DE LA APLICACIÓN -->
+    <div class="w-full max-w-md mx-auto px-4 pt-4 flex-grow hidden" id="main-content">
+        
+        <!-- HEADER DE LA APP & ESTADO DE LA TASA -->
+        <header class="bg-darkCard border border-cyan-500/30 rounded-2xl p-4 shadow-neon-glow mb-4 relative overflow-hidden">
+            <div class="absolute -top-10 -right-10 w-24 h-24 bg-cyan-500/10 rounded-full blur-xl pointer-events-none"></div>
+            
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <img id="app-logo" src="Logo Simple.jpg" alt="Logo" class="w-10 h-10 rounded-xl border border-cyan-400/50 object-cover" onerror="this.src='https://placehold.co/100x100/090D16/00F0FF?text=FS'">
+                    <div>
+                        <h1 class="text-sm font-extrabold tracking-wider text-cyan-400">FONSECA ECOSISTEMA 360</h1>
+                        <p class="text-[10px] text-gray-400 uppercase tracking-widest">Tu Mano Derecha v2.1</p>
+                    </div>
+                </div>
+                <!-- Botón para volver a bloquear manualmente -->
+                <button onclick="lockApp()" class="p-2 bg-gray-950 hover:bg-red-500/10 text-gray-400 hover:text-red-400 rounded-xl transition-all border border-gray-800" title="Bloquear Estación">
+                    <i class="fa-solid fa-lock text-xs"></i>
+                </button>
+            </div>
+
+            <!-- Tasa Cambiaria BCV -->
+            <div class="mt-4 pt-3 border-t border-gray-800 flex items-center justify-between">
+                <div class="flex items-center space-x-1.5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" id="status-dot"></span>
+                    <p class="text-xs text-gray-300 font-medium">Tasa BCV:</p>
+                    <span class="text-xs bg-gray-800 text-cyan-400 px-2 py-0.5 rounded-md font-mono" id="bcv-source-text">Cargando...</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <div class="flex items-center bg-gray-950 px-2.5 py-1 rounded-xl border border-gray-800">
+                        <span class="text-[11px] text-gray-400 mr-1">Bs.</span>
+                        <input type="number" id="tasa-input" step="0.01" value="45.00" class="bg-transparent text-xs font-bold text-white w-14 focus:outline-none font-mono text-right" oninput="calculateBudget()">
+                    </div>
+                    <button onclick="fetchBcvRate()" class="p-1.5 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 rounded-xl transition-all" title="Sincronizar BCV">
+                        <i id="sync-icon" class="fa-solid fa-arrows-rotate text-xs"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- SELECCIÓN DE MARCA EMISORA -->
+        <div class="bg-darkCard border border-gray-800 rounded-2xl p-3 mb-4 flex justify-between gap-1 shadow-sm">
+            <button onclick="selectBrand('fonseca')" id="btn-brand-fonseca" class="flex-1 text-[11px] font-bold py-2 px-1 rounded-xl transition-all border border-cyan-500 bg-cyan-500/10 text-cyan-400 flex flex-col items-center justify-center">
+                <i class="fa-solid fa-laptop text-sm mb-1"></i>
+                Fonseca Sol.
+            </button>
+            <button onclick="selectBrand('inversiones')" id="btn-brand-inversiones" class="flex-1 text-[11px] font-bold py-2 px-1 rounded-xl transition-all border border-transparent text-gray-400 hover:text-white flex flex-col items-center justify-center">
+                <i class="fa-solid fa-car text-sm mb-1"></i>
+                Inversiones A&O
+            </button>
+            <button onclick="selectBrand('alevenca')" id="btn-brand-alevenca" class="flex-1 text-[11px] font-bold py-2 px-1 rounded-xl transition-all border border-transparent text-gray-400 hover:text-white flex flex-col items-center justify-center">
+                <i class="fa-solid fa-cubes text-sm mb-1"></i>
+                ALEVENCA
+            </button>
+        </div>
+
+        <!-- CAMPOS DEL CLIENTE -->
+        <section class="bg-darkCard border border-gray-800 rounded-2xl p-4 shadow-lg mb-4 space-y-3">
+            <h2 class="text-xs font-bold text-cyan-400 tracking-wider flex items-center uppercase">
+                <i class="fa-solid fa-user-tag mr-2"></i>
+                Identificación del Cliente
+            </h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="space-y-1">
+                    <label class="text-[10px] text-gray-400 font-semibold uppercase">Nombre del Cliente</label>
+                    <div class="flex items-center bg-gray-950 rounded-xl border border-gray-800 px-3 py-2">
+                        <i class="fa-regular fa-user text-xs text-gray-500 mr-2"></i>
+                        <input type="text" id="client-name" placeholder="Ej. Luis Pérez" 
+                            class="bg-transparent text-xs text-white w-full focus:outline-none placeholder-gray-600 font-medium"
+                            oninput="updateClientMetadata()">
+                    </div>
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[10px] text-gray-400 font-semibold uppercase">Número Telefónico</label>
+                    <div class="flex items-center bg-gray-950 rounded-xl border border-gray-800 px-3 py-2">
+                        <i class="fa-solid fa-mobile-retro text-xs text-gray-500 mr-2"></i>
+                        <input type="tel" id="client-phone" inputmode="tel" placeholder="Ej. 04141234567" 
+                            class="bg-transparent text-xs text-white w-full focus:outline-none placeholder-gray-600 font-mono"
+                            oninput="updateClientMetadata()">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CALCULADORA DE ARTÍCULOS -->
+        <main class="bg-darkCard border border-gray-800 rounded-2xl p-4 shadow-lg mb-4">
+            <div class="flex items-center justify-between mb-3">
+                <h2 class="text-sm font-bold text-gray-200 tracking-wider flex items-center">
+                    <i class="fa-solid fa-file-invoice-dollar text-cyan-400 mr-2"></i>
+                    Ítems del Presupuesto
+                </h2>
+                <button onclick="addNewRow()" class="px-3 py-1.5 bg-cyan-500 hover:bg-cyan-600 text-darkBg font-extrabold text-xs rounded-xl flex items-center space-x-1 transition-all">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>Agregar</span>
+                </button>
+            </div>
+
+            <!-- Contenedor de Filas Dinámicas -->
+            <div id="items-container" class="space-y-3 max-h-[300px] overflow-y-auto pr-1 mb-4">
+                <!-- Filas dinámicas se inyectan acá -->
+            </div>
+
+            <!-- PANEL DE IVA & AJUSTES -->
+            <div class="pt-4 border-t border-gray-800 flex items-center justify-between bg-gray-950/40 p-3 rounded-xl border border-gray-900">
+                <div class="flex items-center space-x-2">
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="iva-toggle" class="sr-only peer" checked onchange="calculateBudget()">
+                        <div class="w-9 h-5 bg-gray-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-300 after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-cyan-500"></div>
+                        <span class="ml-2 text-xs font-semibold text-gray-300">Calcular IVA (16%)</span>
+                    </label>
+                </div>
+                <div class="text-[11px] text-gray-400 flex items-center">
+                    <i class="fa-solid fa-circle-info text-cyan-400/70 mr-1"></i>
+                    <span id="iva-status-badge">Aplicando IVA</span>
+                </div>
+            </div>
+
+            <!-- TOTAL DEL PRESUPUESTO -->
+            <div class="mt-4 bg-gray-950/60 rounded-xl p-4 border border-gray-800/80 space-y-2.5">
+                <!-- Subtotal -->
+                <div class="flex justify-between items-center text-xs">
+                    <span class="text-gray-400 font-medium">Subtotal</span>
+                    <div class="text-right">
+                        <p class="font-semibold text-gray-200" id="subtotal-usd">$0.00</p>
+                        <p class="text-[10px] text-gray-500 font-mono" id="subtotal-bs">Bs. 0,00</p>
+                    </div>
+                </div>
+                <!-- IVA -->
+                <div class="flex justify-between items-center text-xs transition-all duration-300" id="iva-display-row">
+                    <span class="text-gray-400 font-medium">IVA (16%)</span>
+                    <div class="text-right">
+                        <p class="font-semibold text-red-400/90" id="iva-usd">$0.00</p>
+                        <p class="text-[10px] text-gray-500 font-mono" id="iva-bs">Bs. 0,00</p>
+                    </div>
+                </div>
+                <!-- Separador -->
+                <div class="border-t border-gray-800/80 my-1"></div>
+                <!-- TOTAL DUAL -->
+                <div class="flex justify-between items-center">
+                    <div>
+                        <span class="text-sm font-black tracking-wider text-cyan-400">TOTAL DUAL</span>
+                        <p class="text-[9px] font-bold text-gray-500 uppercase tracking-widest mt-0.5 font-mono">Tasa BCV</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-xl font-black text-white tracking-tight" id="total-usd">$0.00</p>
+                        <p class="text-xs font-bold text-cyan-400 font-mono tracking-wide" id="total-bs">Bs. 0,00</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- ACCIONES PRINCIPALES -->
+            <div class="grid grid-cols-2 gap-3 mt-4">
+                <button onclick="shareBudgetWhatsApp()" class="py-3 px-3 bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-darkBg font-black text-xs rounded-xl flex items-center justify-center space-x-1.5 shadow-md transition-all">
+                    <i class="fa-brands fa-whatsapp text-sm"></i>
+                    <span class="uppercase">WhatsApp</span>
+                </button>
+                <button onclick="copyToClipboard()" class="py-3 px-3 bg-cyan-400 hover:bg-cyan-500 active:bg-cyan-600 text-darkBg font-black text-xs rounded-xl flex items-center justify-center space-x-1.5 shadow-md transition-all">
+                    <i class="fa-regular fa-copy text-sm"></i>
+                    <span class="uppercase">Copiar Texto</span>
+                </button>
+            </div>
+            <div class="grid grid-cols-2 gap-3 mt-2.5">
+                <button onclick="saveCurrentBudget()" class="py-3 px-3 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-black text-xs rounded-xl flex items-center justify-center space-x-1.5 shadow-md transition-all" id="save-btn-active">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <span class="uppercase">Guardar Ficha</span>
+                </button>
+                <button onclick="clearForm()" class="py-3 px-3 bg-gray-900 hover:bg-gray-800 active:bg-gray-950 text-gray-400 hover:text-gray-200 font-black text-xs rounded-xl flex items-center justify-center space-x-1.5 shadow-md transition-all">
+                    <i class="fa-solid fa-trash-can"></i>
+                    <span class="uppercase">Limpiar Todo</span>
+                </button>
+            </div>
+        </main>
+
+        <!-- HISTORIAL DE PRESUPUESTOS GUARDADOS -->
+        <section class="bg-darkCard border border-gray-800 rounded-2xl p-4 shadow-lg mb-4">
+            <div class="flex items-center justify-between mb-3">
+                <h2 class="text-xs font-bold text-cyan-400 tracking-wider flex items-center uppercase">
+                    <i class="fa-solid fa-box-archive mr-2"></i>
+                    Historial de Fichas
+                </h2>
+                <span class="text-[10px] bg-gray-950 text-gray-500 font-mono px-2 py-0.5 rounded-lg border border-gray-800/80" id="history-counter">0 guardados</span>
+            </div>
+            
+            <div id="history-container" class="space-y-2.5 max-h-[220px] overflow-y-auto pr-1">
+                <!-- Se poblará con localStorage -->
+                <p class="text-center text-[11px] text-gray-600 py-4 italic">No tienes presupuestos guardados en esta estación.</p>
+            </div>
+        </section>
+        
+        <!-- INSTRUCCIONES PARA INSTALAR EN ANDROID -->
+        <div class="bg-darkCard/50 border border-gray-800 rounded-xl p-3 text-center mb-6">
+            <h3 class="text-xs font-bold text-gray-300 mb-1 flex items-center justify-center">
+                <i class="fa-solid fa-mobile-screen-button text-cyan-400 mr-1.5"></i>
+                ¿Cómo añadir a tu pantalla de inicio?
+            </h3>
+            <p class="text-[10px] text-gray-400 leading-relaxed">
+                Toca los <i class="fa-solid fa-ellipsis-vertical mx-0.5 text-gray-200"></i> en Chrome, selecciona <strong class="text-cyan-400">"Agregar a la pantalla principal"</strong> y listo. ¡Usa el icono oficial!
+            </p>
+        </div>
+    </div>
+
+    <!-- NOTIFICADOR TOAST (Evitamos alertas molestas) -->
+    <div id="toast-notification" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-gray-900 border border-cyan-400/50 text-cyan-400 px-4 py-2.5 rounded-xl text-xs font-bold shadow-2xl opacity-0 translate-y-10 transition-all duration-300 z-50 flex items-center space-x-2">
+        <i class="fa-solid fa-circle-check"></i>
+        <span id="toast-message">Copiado con éxito</span>
+    </div>
+
+    <!-- FOOTER ESTRATÉGICO -->
+    <footer class="text-center w-full max-w-md mx-auto px-4 mt-auto">
+        <p class="text-[9px] text-gray-500 tracking-widest uppercase">
+            Diseñado para el Arquitecto de Soluciones • Luis Fonseca
+        </p>
+        <p class="text-[8px] text-cyan-500/50 mt-1">
+            Turmero • Estado Aragua • Venezuela
+        </p>
+    </footer>
+
+    <script>
+        // CONFIGURACIONES Y VARIABLES GLOBALES
+        let currentBrand = 'fonseca';
+        let activeBudgetId = null; // Para saber si estamos editando uno existente o creando uno nuevo
+        
+        // Asignación de activos validados por el "Filtro de Entrada de Emi"
+        const brandConfig = {
+            fonseca: {
+                name: "Fonseca Soluciones",
+                title: "💻 *FONSECA SOLUCIONES* 💻\n_Soporte Técnico Especializado e Ingeniería Digital_",
+                location: "📍 Sede Turmero, Aragua.",
+                tagline: "¡La solución inteligente para tu tecnología!",
+                hashtags: "#FonsecaSoluciones #Turmero #Maracay #SoporteTecnico #LaptopsAragua",
+                logo: "Logo.png"
+            },
+            inversiones: {
+                name: "Inversiones A&O 0575",
+                title: "⚙️ *INVERSIONES A&O 0575* ⚙️\n_Repuestos de fabricación nacional en Aluminio de alta resistencia_",
+                location: "📍 Sede Maracay, Aragua.",
+                tagline: "Evita adaptaciones improvisadas que dañan tu motor. ¡Ajuste perfecto!",
+                hashtags: "#InversionesAO #RepuestosAragua #Carburador #TBI #AluminioNacional",
+                logo: "mascotainv.jpg"
+            },
+            alevenca: {
+                name: "ALEVENCA (Freelance)",
+                title: "🏢 *ALEVENCA* 🏢\n_Socio Comercial Autorizado - Soluciones a tu medida_",
+                location: "📍 Av. Intercomunal Turmero-Maracay, Edo. Aragua.",
+                tagline: "Especialistas en fachadas, puertas, ventanas, divisiones de espacio y acero inoxidable.",
+                hashtags: "#Alevenca #VidrioYAluminio #DiseñoInterior #ArquitecturaAragua @alevencavzla",
+                logo: "logoalevenca.jpg" 
+            }
+        };
+
+        // Estructuras reactivas del formulario
+        let itemsList = [
+            { id: 1, name: "Servicio Técnico Premium", price: 25.00, qty: 1 }
+        ];
+
+        let clientMetadata = {
+            name: "",
+            phone: ""
+        };
+
+        // Lógica de seguridad del PIN 2026
+        const CORRECT_PIN = "2026";
+        let enteredPin = "";
+
+        // INICIALIZADOR AL CARGAR LA PÁGINA
+        window.onload = function() {
+            renderItems();
+            fetchBcvRate();
+            selectBrand('fonseca'); // Inicializar con Fonseca Soluciones
+            loadSavedBudgetsFromStorage(); // Cargar historial de localStorage
+            
+            // Verificar si el PIN ya fue ingresado con éxito en esta sesión
+            if (sessionStorage.getItem("ecosistema360_unlocked") === "true") {
+                bypassLock();
+            }
+        };
+
+        // ENTRADA DE BOTONES DEL TECLADO NUMÉRICO
+        function pressKey(num) {
+            if (enteredPin.length < 4) {
+                enteredPin += num;
+                updatePinIndicators();
+                
+                // Si completó los 4 dígitos, validar automáticamente
+                if (enteredPin.length === 4) {
+                    setTimeout(validatePin, 250);
+                }
+            }
+        }
+
+        // CONTROL DE BORRADO DE DÍGITO
+        function backspacePin() {
+            if (enteredPin.length > 0) {
+                enteredPin = enteredPin.slice(0, -1);
+                updatePinIndicators();
+            }
+        }
+
+        // LIMPIAR TODO EL INPUT DEL PIN
+        function clearPinInput() {
+            enteredPin = "";
+            updatePinIndicators();
+            const msg = document.getElementById('lock-status-msg');
+            msg.textContent = "Ingrese PIN de Acceso";
+            msg.className = "text-sm font-semibold text-gray-300";
+        }
+
+        // ACTUALIZAR PUNTOS DE LA INTERFAZ
+        function updatePinIndicators() {
+            for (let i = 0; i < 4; i++) {
+                const dot = document.getElementById(`dot-${i}`);
+                if (i < enteredPin.length) {
+                    dot.className = "w-3.5 h-3.5 rounded-full bg-cyan-400 border border-cyan-400 shadow-[0_0_8px_rgba(0,240,255,0.7)] transition-all duration-200";
+                } else {
+                    dot.className = "w-3.5 h-3.5 rounded-full border border-gray-700 bg-gray-900 transition-all duration-200";
+                }
+            }
+        }
+
+        // VALIDAR PIN INGRESADO
+        function validatePin() {
+            const lockScreen = document.getElementById('lock-screen');
+            const msg = document.getElementById('lock-status-msg');
+            
+            if (enteredPin === CORRECT_PIN) {
+                msg.textContent = "ACCESO CONCEDIDO";
+                msg.className = "text-sm font-black text-emerald-400 tracking-widest";
+                sessionStorage.setItem("ecosistema360_unlocked", "true");
+                
+                setTimeout(() => {
+                    lockScreen.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
+                    document.getElementById('main-content').classList.remove('hidden');
+                    showToast("Estación Turmero Desbloqueada");
+                }, 400);
+            } else {
+                msg.textContent = "PIN INCORRECTO - REINTENTE";
+                msg.className = "text-sm font-black text-red-500 tracking-wider";
+                
+                const pinIndicatorsContainer = document.getElementById('pin-indicators');
+                pinIndicatorsContainer.classList.add('shake-element');
+                
+                setTimeout(() => {
+                    pinIndicatorsContainer.classList.remove('shake-element');
+                    clearPinInput();
+                }, 600);
+            }
+        }
+
+        // BYPASS DIRECTO AL REFRESCAR SESIÓN AUTORIZADA
+        function bypassLock() {
+            document.getElementById('lock-screen').classList.add('opacity-0', 'pointer-events-none', 'scale-95');
+            document.getElementById('main-content').classList.remove('hidden');
+        }
+
+        // CERRAR SESIÓN / BLOQUEO MANUAL
+        function lockApp() {
+            sessionStorage.removeItem("ecosistema360_unlocked");
+            enteredPin = "";
+            updatePinIndicators();
+            
+            const lockScreen = document.getElementById('lock-screen');
+            const msg = document.getElementById('lock-status-msg');
+            
+            msg.textContent = "Estación Cerrada Manualmente";
+            msg.className = "text-sm font-semibold text-cyan-400";
+            
+            document.getElementById('main-content').classList.add('hidden');
+            lockScreen.classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
+            showToast("Estación Bloqueada de forma segura");
+        }
+
+        // CAMBIAR MARCA EMISORA
+        function selectBrand(brandId) {
+            currentBrand = brandId;
+            const config = brandConfig[brandId];
+            
+            ['fonseca', 'inversiones', 'alevenca'].forEach(b => {
+                const btn = document.getElementById(`btn-brand-${b}`);
+                if (b === brandId) {
+                    btn.className = "flex-1 text-[11px] font-bold py-2 px-1 rounded-xl transition-all border border-cyan-500 bg-cyan-500/10 text-cyan-400 flex flex-col items-center justify-center";
+                } else {
+                    btn.className = "flex-1 text-[11px] font-bold py-2 px-1 rounded-xl transition-all border border-transparent text-gray-400 hover:text-white flex flex-col items-center justify-center";
+                }
+            });
+
+            const imgEl = document.getElementById('app-logo');
+            imgEl.src = config.logo;
+            
+            calculateBudget();
+        }
+
+        // ACTUALIZAR METADATOS DEL CLIENTE EN TIEMPO REAL
+        function updateClientMetadata() {
+            clientMetadata.name = document.getElementById('client-name').value.trim();
+            clientMetadata.phone = document.getElementById('client-phone').value.trim();
+        }
+
+        // AGREGAR FILA DINÁMICA
+        function addNewRow() {
+            const nextId = itemsList.length > 0 ? Math.max(...itemsList.map(i => i.id)) + 1 : 1;
+            itemsList.push({
+                id: nextId,
+                name: "",
+                price: 0.00,
+                qty: 1
+            });
+            renderItems();
+            calculateBudget();
+        }
+
+        // ELIMINAR FILA DINÁMICA
+        function deleteRow(id) {
+            if (itemsList.length === 1) {
+                showToast("Debes tener al menos un ítem en tu presupuesto");
+                return;
+            }
+            itemsList = itemsList.filter(item => item.id !== id);
+            renderItems();
+            calculateBudget();
+        }
+
+        // RENDERIZAR ÍTEMS EN EL CONTENEDOR
+        function renderItems() {
+            const container = document.getElementById('items-container');
+            container.innerHTML = '';
+
+            itemsList.forEach((item, index) => {
+                const row = document.createElement('div');
+                row.className = "flex items-center space-x-2 bg-gray-950/40 p-2.5 rounded-xl border border-gray-950 hover:border-gray-800 transition-all";
+                row.innerHTML = `
+                    <div class="flex-grow space-y-1">
+                        <input type="text" value="${item.name}" placeholder="Descripción del artículo..." 
+                            class="w-full bg-transparent text-xs text-white font-semibold focus:outline-none placeholder-gray-600 focus:text-cyan-400 transition-colors"
+                            onchange="updateItemData(${item.id}, 'name', this.value)">
+                        
+                        <div class="flex items-center space-x-2">
+                            <!-- Precio Unitario en USD -->
+                            <div class="flex items-center bg-gray-900 px-2 py-0.5 rounded-lg border border-gray-800 w-24">
+                                <span class="text-[10px] text-gray-500 mr-1">$</span>
+                                <input type="number" step="0.01" inputmode="decimal" value="${item.price}" placeholder="0.00"
+                                    class="bg-transparent text-xs text-white font-mono w-full focus:outline-none"
+                                    oninput="updateItemData(${item.id}, 'price', parseFloat(this.value) || 0)">
+                            </div>
+                            
+                            <!-- Cantidad -->
+                            <div class="flex items-center bg-gray-900 px-2 py-0.5 rounded-lg border border-gray-800 w-16">
+                                <span class="text-[9px] text-gray-500 mr-1">Cant</span>
+                                <input type="number" inputmode="numeric" value="${item.qty}" placeholder="1"
+                                    class="bg-transparent text-xs text-white font-bold w-full focus:outline-none text-center"
+                                    oninput="updateItemData(${item.id}, 'qty', parseInt(this.value) || 1)">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Botón de Borrado -->
+                    <button onclick="deleteRow(${item.id})" class="p-2 text-gray-500 hover:text-red-400 transition-colors">
+                        <i class="fa-regular fa-trash-can text-sm"></i>
+                    </button>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        // ACTUALIZAR DATOS EN MEMORIA DE MANERA INMEDIATA
+        function updateItemData(id, field, value) {
+            const item = itemsList.find(i => i.id === id);
+            if (item) {
+                item[field] = value;
+                calculateBudget();
+            }
+        }
+
+        // CONEXIÓN CON LA API CAMBIARIA OFICIAL
+        async function fetchBcvRate() {
+            const syncIcon = document.getElementById('sync-icon');
+            const statusDot = document.getElementById('status-dot');
+            const rateInput = document.getElementById('tasa-input');
+            const sourceText = document.getElementById('bcv-source-text');
+            
+            syncIcon.classList.add('animate-spin');
+            statusDot.className = "w-2 h-2 rounded-full bg-amber-500 animate-pulse";
+            
+            try {
+                const response = await fetch('https://ve.dolarapi.com/v1/dolares/oficial');
+                if (!response.ok) throw new Error('Error al conectar con el servidor.');
+                
+                const data = await response.json();
+                const rate = parseFloat(data.promedio || data.venta);
+                
+                if (rate && !isNaN(rate)) {
+                    rateInput.value = rate.toFixed(2);
+                    sourceText.textContent = "Sincronizado";
+                    sourceText.className = "text-xs bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-md font-mono";
+                    statusDot.className = "w-2 h-2 rounded-full bg-emerald-500";
+                    showToast("Tasa BCV actualizada exitosamente");
+                } else {
+                    throw new Error('Formato de datos inválido.');
+                }
+            } catch (error) {
+                console.error("Fallo de API, usando fallback local:", error);
+                sourceText.textContent = "Modo Manual";
+                sourceText.className = "text-xs bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded-md font-mono";
+                statusDot.className = "w-2 h-2 rounded-full bg-amber-500";
+                showToast("Falla de API. Tasa configurada en modo manual.");
+            } finally {
+                syncIcon.classList.remove('animate-spin');
+                calculateBudget();
+            }
+        }
+
+        // LÓGICA DE CÁLCULO GENERAL DE VALORES
+        function calculateBudget() {
+            const tasa = parseFloat(document.getElementById('tasa-input').value) || 1.00;
+            const isIvaEnabled = document.getElementById('iva-toggle').checked;
+            
+            let subtotalUsd = 0;
+            itemsList.forEach(item => {
+                subtotalUsd += (item.price * item.qty);
+            });
+            
+            const subtotalBs = subtotalUsd * tasa;
+            
+            let ivaUsd = 0;
+            if (isIvaEnabled) {
+                ivaUsd = subtotalUsd * 0.16;
+                document.getElementById('iva-display-row').classList.remove('opacity-30', 'line-through');
+                document.getElementById('iva-status-badge').textContent = "Calculando IVA (16%)";
+                document.getElementById('iva-status-badge').className = "text-[11px] text-cyan-400 font-semibold";
+            } else {
+                document.getElementById('iva-display-row').classList.add('opacity-30', 'line-through');
+                document.getElementById('iva-status-badge').textContent = "Sin IVA (Exento)";
+                document.getElementById('iva-status-badge').className = "text-[11px] text-gray-500 font-medium";
+            }
+            
+            const ivaBs = ivaUsd * tasa;
+            const totalUsd = subtotalUsd + ivaUsd;
+            const totalBs = subtotalBs + ivaBs;
+
+            document.getElementById('subtotal-usd').textContent = `$${subtotalUsd.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            document.getElementById('subtotal-bs').textContent = `Bs. ${subtotalBs.toLocaleString('es-VE', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            
+            document.getElementById('iva-usd').textContent = `$${ivaUsd.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            document.getElementById('iva-bs').textContent = `Bs. ${ivaBs.toLocaleString('es-VE', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            
+            document.getElementById('total-usd').textContent = `$${totalUsd.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            document.getElementById('total-bs').textContent = `Bs. ${totalBs.toLocaleString('es-VE', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        }
+
+        // GENERAR TEXTO PARA COMPARTIR O COPIAR
+        function generateBudgetText() {
+            const config = brandConfig[currentBrand];
+            const tasa = parseFloat(document.getElementById('tasa-input').value) || 1.00;
+            const isIvaEnabled = document.getElementById('iva-toggle').checked;
+            
+            const date = new Date().toLocaleDateString('es-VE', { year: 'numeric', month: 'long', day: 'numeric' });
+            
+            let text = `${config.title}\n`;
+            text += `📅 _Fecha: ${date}_\n`;
+            text += `${config.location}\n`;
+            text += `━━━━━━━━━━━━━━━━━━━━\n\n`;
+            
+            // Integración de Datos del Cliente en el Mensaje de WhatsApp
+            if (clientMetadata.name || clientMetadata.phone) {
+                text += `👤 *DATOS DEL CLIENTE:*\n`;
+                if (clientMetadata.name) text += `   • *Nombre:* ${clientMetadata.name}\n`;
+                if (clientMetadata.phone) text += `   • *Teléfono:* ${clientMetadata.phone}\n`;
+                text += `━━━━━━━━━━━━━━━━━━━━\n\n`;
+            }
+
+            text += `📋 *DETALLE DEL PRESUPUESTO:*\n\n`;
+
+            let subtotalUsd = 0;
+            itemsList.forEach((item, index) => {
+                const name = item.name ? item.name : `Artículo ${index + 1}`;
+                const totalItemUsd = item.price * item.qty;
+                const totalItemBs = totalItemUsd * tasa;
+                
+                text += `🔹 *${name}*\n`;
+                text += `   _${item.qty} unids x $${item.price.toFixed(2)}_ \n`;
+                text += `   *Subtotal:* $${totalItemUsd.toFixed(2)} / Bs. ${totalItemBs.toLocaleString('es-VE', {minimumFractionDigits: 2, maximumFractionDigits: 2})}\n\n`;
+                
+                subtotalUsd += totalItemUsd;
+            });
+
+            const subtotalBs = subtotalUsd * tasa;
+            const ivaUsd = isIvaEnabled ? subtotalUsd * 0.16 : 0;
+            const ivaBs = ivaUsd * tasa;
+            const totalUsd = subtotalUsd + ivaUsd;
+            const totalBs = subtotalBs + ivaBs;
+
+            text += `━━━━━━━━━━━━━━━━━━━━\n`;
+            text += `💵 *RESUMEN DE CUENTA (DUAL):*\n\n`;
+            text += `▫️ *Subtotal:* $${subtotalUsd.toFixed(2)} / Bs. ${subtotalBs.toLocaleString('es-VE', {minimumFractionDigits: 2, maximumFractionDigits: 2})}\n`;
+            
+            if (isIvaEnabled) {
+                text += `▫️ *IVA (16%):* $${ivaUsd.toFixed(2)} / Bs. ${ivaBs.toLocaleString('es-VE', {minimumFractionDigits: 2, maximumFractionDigits: 2})}\n`;
+            } else {
+                text += `▫️ *IVA (16%):* Exento / No aplica\n`;
+            }
+            
+            text += `\n💰 *TOTAL A PAGAR:* \n`;
+            text += `👉 *Ref: $${totalUsd.toFixed(2)} USD*\n`;
+            text += `👉 *Monto en Bs: ${totalBs.toLocaleString('es-VE', {minimumFractionDigits: 2, maximumFractionDigits: 2})} VES*\n\n`;
+            text += `ℹ️ _Tasa Oficial de Cambio (BCV): Bs. ${tasa.toFixed(2)} por USD_\n`;
+            text += `━━━━━━━━━━━━━━━━━━━━\n\n`;
+            text += `💬 ${config.tagline}\n\n`;
+            text += `${config.hashtags}`;
+
+            return text;
+        }
+
+        // COPIAR AL PORTAPAPELES (Respetando directivas de Sandbox)
+        function copyToClipboard() {
+            const rawText = generateBudgetText();
+            
+            const textarea = document.createElement('textarea');
+            textarea.value = rawText;
+            textarea.style.position = 'fixed'; 
+            document.body.appendChild(textarea);
+            textarea.select();
+            
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    showToast("¡Presupuesto copiado al portapapeles!");
+                } else {
+                    showToast("No se pudo copiar de forma directa.");
+                }
+            } catch (err) {
+                showToast("Por favor, copia el texto manualmente.");
+            }
+            document.body.removeChild(textarea);
+        }
+
+        // COMPARTIR POR WHATSAPP
+        function shareBudgetWhatsApp() {
+            const text = generateBudgetText();
+            const encodedText = encodeURIComponent(text);
+            const url = `https://api.whatsapp.com/send?text=${encodedText}`;
+            window.open(url, '_blank');
+        }
+
+        // LIMPIAR FORMULARIO ACTIVO
+        function clearForm() {
+            activeBudgetId = null;
+            itemsList = [{ id: 1, name: "", price: 0.00, qty: 1 }];
+            clientMetadata = { name: "", phone: "" };
+            
+            document.getElementById('client-name').value = "";
+            document.getElementById('client-phone').value = "";
+            document.getElementById('iva-toggle').checked = true;
+            
+            const saveBtn = document.getElementById('save-btn-active');
+            saveBtn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> <span class="uppercase">Guardar Ficha</span>`;
+            saveBtn.className = "py-3 px-3 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-black text-xs rounded-xl flex items-center justify-center space-x-1.5 shadow-md transition-all";
+
+            renderItems();
+            calculateBudget();
+            showToast("Borrador limpio listo para nueva ficha");
+        }
+
+        // OBTENER TODOS LOS PRESUPUESTOS DE LOCALSTORAGE
+        function getSavedBudgets() {
+            const raw = localStorage.getItem('ecosistema360_saved_budgets');
+            return raw ? JSON.parse(raw) : [];
+        }
+
+        // GUARDAR PRESUPUESTO ACTUAL EN LOCALSTORAGE
+        function saveCurrentBudget() {
+            const budgets = getSavedBudgets();
+            const tasa = parseFloat(document.getElementById('tasa-input').value) || 1.00;
+            const isIvaEnabled = document.getElementById('iva-toggle').checked;
+            
+            // Calcular monto final total para guardarlo en la ficha histórica resumida
+            let subtotal = 0;
+            itemsList.forEach(item => {
+                subtotal += (item.price * item.qty);
+            });
+            const iva = isIvaEnabled ? subtotal * 0.16 : 0;
+            const total = subtotal + iva;
+
+            const budgetData = {
+                id: activeBudgetId || Date.now(), // Usar ID existente o generar uno nuevo por timestamp
+                brand: currentBrand,
+                clientName: clientMetadata.name || "Cliente S/N",
+                clientPhone: clientMetadata.phone || "Sin Teléfono",
+                tasa: tasa,
+                ivaEnabled: isIvaEnabled,
+                items: itemsList,
+                totalUsd: total,
+                date: new Date().toLocaleDateString('es-VE', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+            };
+
+            if (activeBudgetId) {
+                // Actualizar presupuesto existente
+                const index = budgets.findIndex(b => b.id === activeBudgetId);
+                if (index !== -1) {
+                    budgets[index] = budgetData;
+                    showToast("Ficha de presupuesto actualizada");
+                }
+            } else {
+                // Agregar nuevo
+                budgets.unshift(budgetData);
+                activeBudgetId = budgetData.id; // Marcar como cargado/editando
+                showToast("Presupuesto archivado en historial");
+                
+                // Actualizar botón para reflejar que ahora es edición
+                const saveBtn = document.getElementById('save-btn-active');
+                saveBtn.innerHTML = `<i class="fa-solid fa-arrows-rotate"></i> <span class="uppercase">Actualizar Ficha</span>`;
+                saveBtn.className = "py-3 px-3 bg-teal-600 hover:bg-teal-700 active:bg-teal-800 text-white font-black text-xs rounded-xl flex items-center justify-center space-x-1.5 shadow-md transition-all";
+            }
+
+            localStorage.setItem('ecosistema360_saved_budgets', JSON.stringify(budgets));
+            loadSavedBudgetsFromStorage();
+        }
+
+        // CARGAR Y RENDERIZAR LISTA DE HISTORIAL
+        function loadSavedBudgetsFromStorage() {
+            const budgets = getSavedBudgets();
+            const container = document.getElementById('history-container');
+            const counter = document.getElementById('history-counter');
+            
+            counter.textContent = `${budgets.length} guardados`;
+
+            if (budgets.length === 0) {
+                container.innerHTML = `<p class="text-center text-[11px] text-gray-600 py-4 italic">No tienes presupuestos guardados en esta estación.</p>`;
+                return;
+            }
+
+            container.innerHTML = '';
+            budgets.forEach(budget => {
+                const brandMeta = brandConfig[budget.brand];
+                const card = document.createElement('div');
+                card.className = `p-3 rounded-xl border ${activeBudgetId === budget.id ? 'border-cyan-400 bg-cyan-500/5' : 'border-gray-800 bg-gray-950/40'} hover:border-gray-700 transition-all space-y-2 relative`;
+                card.innerHTML = `
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <p class="text-[11px] font-extrabold text-cyan-400 uppercase tracking-tight">${budget.clientName}</p>
+                            <p class="text-[9px] text-gray-500 font-mono">${budget.date} • ${brandMeta.name.split(" ")[0]}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-xs font-black text-white font-mono">$${budget.totalUsd.toFixed(2)}</p>
+                            <p class="text-[9px] text-gray-400 font-mono">Bs. ${(budget.totalUsd * budget.tasa).toLocaleString('es-VE', {minimumFractionDigits: 1, maximumFractionDigits: 1})}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between pt-1 border-t border-gray-900">
+                        <div class="flex items-center space-x-1">
+                            <span class="text-[9px] text-gray-500"><i class="fa-solid fa-phone text-[8px]"></i> ${budget.clientPhone}</span>
+                        </div>
+                        <div class="flex items-center space-x-1.5">
+                            <button onclick="loadBudgetToEditor(${budget.id})" class="text-[10px] bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 font-extrabold px-2 py-1 rounded-md transition-all flex items-center space-x-1">
+                                <i class="fa-solid fa-folder-open text-[9px]"></i>
+                                <span>Cargar</span>
+                            </button>
+                            <button onclick="deleteBudgetFromHistory(${budget.id})" class="text-[10px] bg-red-500/10 hover:bg-red-500/20 text-red-400 px-1.5 py-1 rounded-md transition-all" title="Eliminar de historial">
+                                <i class="fa-regular fa-trash-can text-[9px]"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // CARGAR UN PRESUPUESTO DEL HISTORIAL AL EDITOR
+        function loadBudgetToEditor(id) {
+            const budgets = getSavedBudgets();
+            const budget = budgets.find(b => b.id === id);
+            
+            if (!budget) {
+                showToast("Ficha no encontrada");
+                return;
+            }
+
+            // Cambiar Marca, Tasa y campos de texto
+            activeBudgetId = budget.id;
+            selectBrand(budget.brand);
+            
+            document.getElementById('tasa-input').value = budget.tasa.toFixed(2);
+            document.getElementById('iva-toggle').checked = budget.ivaEnabled;
+            
+            clientMetadata.name = budget.clientName === "Cliente S/N" ? "" : budget.clientName;
+            clientMetadata.phone = budget.clientPhone === "Sin Teléfono" ? "" : budget.clientPhone;
+            
+            document.getElementById('client-name').value = clientMetadata.name;
+            document.getElementById('client-phone').value = clientMetadata.phone;
+
+            // Inyectar ítems
+            itemsList = JSON.parse(JSON.stringify(budget.items)); // Clon profundo
+
+            // Cambiar el botón de guardado a modo actualización
+            const saveBtn = document.getElementById('save-btn-active');
+            saveBtn.innerHTML = `<i class="fa-solid fa-arrows-rotate"></i> <span class="uppercase">Actualizar Ficha</span>`;
+            saveBtn.className = "py-3 px-3 bg-teal-600 hover:bg-teal-700 active:bg-teal-800 text-white font-black text-xs rounded-xl flex items-center justify-center space-x-1.5 shadow-md transition-all";
+
+            renderItems();
+            calculateBudget();
+            loadSavedBudgetsFromStorage(); // Refrescar color de tarjeta activa
+            
+            showToast(`Ficha de ${budget.clientName} cargada exitosamente`);
+        }
+
+        // ELIMINAR PRESUPUESTO DEL HISTORIAL
+        function deleteBudgetFromHistory(id) {
+            let budgets = getSavedBudgets();
+            budgets = budgets.filter(b => b.id !== id);
+            localStorage.setItem('ecosistema360_saved_budgets', JSON.stringify(budgets));
+            
+            // Si el presupuesto activo es el que se borró, limpiar editor
+            if (activeBudgetId === id) {
+                clearForm();
+            } else {
+                loadSavedBudgetsFromStorage();
+            }
+            
+            showToast("Presupuesto eliminado de la estación");
+        }
+
+        // MOSTRAR TOAST PERSONALIZADO
+        function showToast(message) {
+            const toast = document.getElementById('toast-notification');
+            const toastMsg = document.getElementById('toast-message');
+            
+            toastMsg.textContent = message;
+            toast.className = "fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-gray-900 border border-cyan-400/50 text-cyan-400 px-4 py-2.5 rounded-xl text-xs font-bold shadow-2xl opacity-100 translate-y-0 transition-all duration-300 z-50 flex items-center space-x-2";
+            
+            setTimeout(() => {
+                toast.className = "fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-gray-900 border border-cyan-400/50 text-cyan-400 px-4 py-2.5 rounded-xl text-xs font-bold shadow-2xl opacity-0 translate-y-10 transition-all duration-300 z-50 flex items-center space-x-2";
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
